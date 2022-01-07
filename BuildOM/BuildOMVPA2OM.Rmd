@@ -34,6 +34,9 @@ nsim <- 250 # The number of simulations (48 is the minimum number you can run in
 proyears <- 50 # The number of projected years
 interval <- 1  # The assessment interval - how often would you like to update the management system? (should be set to 1 when using the make_interim_MP function using)
 set_Fage0_to_zero <- TRUE # Should we assume F-at-age zero is zero for stocks where age zero was not modeled?
+
+# Set recruitment process error (cpars$Perr_y)
+Perr_y_user <- NA # Set to 1 to remove process error (set to NA in order to leave it as it is)
 ```
 
 ```{r user bam species}
@@ -158,7 +161,7 @@ if(min(ageinit_i)>0){
                 interval = interval,
                 CurrentYr = CurrentYr_i,
                 h=steep_i, R0=R0_i,
-                Obs = MSEtool::Imprecise_Unbiased,
+                Obs = MSEtool::Perfect_Info,
                 Imp = MSEtool::Perfect_Imp,
                 naa=naa, faa=faa, waa=waa, Mataa=Mataa, Maa=Maa, laa=laa,
                 nyr_par_mu = 3,
@@ -173,6 +176,10 @@ if(min(ageinit_i)>0){
  OM_i@cpars$K <- rep(K_i,nsim)
  OM_i@cpars$Linf <- rep(Linf_i,nsim)
  OM_i@cpars$t0 <- rep(t0_i,nsim)
+ 
+ if(!is.na(Perr_y_user)){
+ OM_i@cpars$Perr_y[] <- Perr_y_user
+ }
  
  
  list_Nage_F0_pr_sc[[Name_i]] <- Nage_F0_pr_sc
