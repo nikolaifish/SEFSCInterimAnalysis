@@ -27,7 +27,9 @@ library(bamExtras) # Nikolai's package
 
 ```{r user}
 length_sc <- 0.1 # Scalar (multiplier) to convert length units. MSEtool examples seem to use cm whereas BAM uses mm.
-plot_OM <- TRUE # Switch for plotting OM. It takes a while to plot them all
+generate_Hist <- TRUE # Switch for running Simulate on all of the OM to generate Hist objects. (takes a while)
+plot_Hist <- TRUE # Plot hist objects
+
 
 # OM
 nsim <- 250 # The number of simulations (48 is the minimum number you can run in parallel)
@@ -37,29 +39,93 @@ set_Fage0_to_zero <- TRUE # Should we assume F-at-age zero is zero for stocks wh
 
 # Set recruitment process error (cpars$Perr_y)
 Perr_y_user <- NA # Set to 1 to remove process error (set to NA in order to leave it as it is)
+
+# Specify observation model (Huynh et al. used the "Precise_Unbiased" Obs model)
+ObsUser <- Perfect_Info
+
+run_rdat_to_Obs <- TRUE   # If TRUE, OM will start with ObsUser but then run rdat_to_Obs on the appropriate
+                          # rdat to modify the Obs object to reflect sampling observed in data used in BAM
+                          # assessments
+
+# Specify implementation model (Huynh et al. used the "Perfect_Imp" Imp model)
+ImpUser <- Perfect_Imp
+
+# Add suffix to OM names
+OM_name_suffix <- ""
+
+# Set vulnerability-at-age (V) to a constant vector in OM@cpars@V
+Vconstant <- FALSE
+
+# Limit maximum value of proportion mature of first age class (usually age-1)
+# Some models fail when maturity of first age class is too high (e.g. >0.5)
+Mat_age1_max <- 0.49
+
+# # par_cv: When generating parameters for Stock objects, mean values are observed from rdat.
+# #         Coefficient of variation (CV) values are set to compute the standard deviation of
+# #         a normal distribution from which to sample parameter values
+# par_cv <- c("TLinfinity"=0.1,"K"=0.1,"M"=0.1)
+# 
+# # OM
+# Agency <- "NMFS SEFSC"
+# Region <- "Southeast US Atlantic"
+# Sponsor <- "none"
+# Latitude <-  mean(c(25.0,35.6))
+# Longitude <- mean(c(-81.5,-74.0))
+# nsim <- 250 # The number of simulations (48 is the minimum number you can run in parallel)
+# proyears <- 50 # The number of projected years
+# interval <- 1  # The assessment interval - how often would you like to update the management system? (should be set to 1 when using the make_interim_MP function using)
+# pstar <- 0.5 # The percentile of the sample of the management recommendation for each method
+# maxF <- 3.0 # Maximum instantaneous fishing mortality rate that may be simulated for any given age class
+# reps <- 1 # Number of samples of the management recommendation for each method. Note that when this is set to 1, the mean value of the data inputs is used
+
+
 ```
 
 ```{r user bam species}
 bam_common_name_sub <- c(
   "BlackSeaBass",
-  #"BluelineTilefish",
-  #"Cobia",
-  #"GagGrouper",
-  #"GrayTriggerfish",
-  #"GreaterAmberjack",
+  "BluelineTilefish",
+  "Cobia",
+  "GagGrouper",
+  "GrayTriggerfish",
+  "GreaterAmberjack",
   #"MenhadenAtl",
-  #"RedGrouper",
+  "RedGrouper",
   "RedPorgy",
-  #"RedSnapper",
-  #"SnowyGrouper",
+  "RedSnapper",
+  "SnowyGrouper",
   #"SpanishMackerel",
-  #"Tilefish",
+  "Tilefish",
   "VermilionSnapper"
   )
 
 bam_rdat_sub <- paste("rdat",bam_common_name_sub,sep="_")
 
+OMNames <- gsub("rdat_","OM_",bam_rdat_sub)
 ```
+
+
+```{r build Data, eval=TRUE}
+for(rdat_name_i in bam_rdat_sub){
+  rdat_i <- get(rdat_name_i)
+  
+  Data_name_i <- gsub("rdat","Data",rdat_name_i)
+  Data_i <- rdat_to_Data(rdat_i, Mat_age1_max=Mat_age1_max, length_sc = length_sc,nsim=nsim)
+  # This is to try to solve a problem that occurs later when running Simulate on OM_GreaterAmberjack that has something to do with CAL
+  # I think it might be occurring because there are length comps in a year with no age comps. Maybe. It doesn't occur with Cobia which also
+  # has CAL with values for only a single year.
+  # if(Data_name_i=="Data_GreaterAmberjack"){
+  #   Data_i@CAL <- array(NA,c(1,1,1))
+  #   Data_i@CAL_bins <- as.numeric(NA)
+  #   Data_i@CAL_mids <- as.numeric(NA)
+  # }
+  #Data_i@wla <- Data_i@wla*0.00220462 # Convert kg to klb
+  
+  assign(Data_name_i,Data_i)
+  saveRDS(Data_i,file=file.path("Data","SEFSC",paste0(Data_name_i,".rds")),compress=FALSE)
+}  
+```
+
 
 ```{r build OM VPA2OM, eval=TRUE}
 list_Nage_F0_pr_sc <- list() # List for storing values of Nage_F0_pr_sc
@@ -93,7 +159,7 @@ for(rdat_name_i in bam_rdat_sub){
   K_i <- parm.cons_i$K[8]
   t0_i <- parm.cons_i$t0[8]
   steep_i <- parm.cons_i$steep[8]
-  R0_i <- exp(parm.cons_i$log_R0[8])
+  R0_i <- exp(parm.cons_i$log.R0[8])
   
   # Compute the number of years at the end of the assessment where rec devs weren't estimated
   nyrNoRecDevEnd <- if (any(t.series_i$logR.dev!=0)) {
@@ -156,13 +222,26 @@ if(min(ageinit_i)>0){
   
   CurrentYr_i = parms_i$endyr
   
+          if(!is.null(ObsUser)) {
+          if(run_rdat_to_Obs){
+            my_rdat <- get(gsub("OM","rdat",OM_name_i))
+            ObsUser <- rdat_to_Obs(
+                            rdat=my_rdat,
+                            Obs=ObsUser,
+                            Ind_abb=c("sCT","sTV","sVD"),
+                            CAA_abb=c("sCT","sTV","sVD"),
+                            CAL_abb=c("sCT","sTV","sVD")
+                            )
+          }
+        }
+  
  OM_i <- VPA2OM(Name=Name_i,
                 proyears = proyears,
                 interval = interval,
                 CurrentYr = CurrentYr_i,
                 h=steep_i, R0=R0_i,
-                Obs = MSEtool::Perfect_Info,
-                Imp = MSEtool::Perfect_Imp,
+                Obs = ObsUser,
+                Imp = ImpUser,
                 naa=naa, faa=faa, waa=waa, Mataa=Mataa, Maa=Maa, laa=laa,
                 nyr_par_mu = 3,
                 LowerTri = nyrNoRecDevEnd,
@@ -181,6 +260,15 @@ if(min(ageinit_i)>0){
  OM_i@cpars$Perr_y[] <- Perr_y_user
  }
  
+ if(Vconstant){
+   OM_i@cpars$V <- local({
+     V <- OM_i@cpars$V
+     V2 <- aperm(V, perm = c(2, 1, 3))
+     Vc <- V[1,,OM_i@nyears+1]
+     V3 <- array(Vc,dim=dim(V2))
+     aperm(V3, perm = c(2, 1, 3))
+   })
+ }
  
  list_Nage_F0_pr_sc[[Name_i]] <- Nage_F0_pr_sc
  
@@ -206,10 +294,33 @@ if(min(ageinit_i)>0){
 }  
 ```
 
-```{r generate Hist and save OM}
-OM_name_bam <- gsub("rdat","OM",bam_rdat_sub) # OM names from bam models
+```{r plot selectivity}
+par(mfrow=c(4,1),mgp=c(1,0.2,0),mar=c(3,2,1.5,1),oma=c(1,2,1,1),tck=-0.01)
+for(OMName_i in OMNames){
+OM_i <- get(OMName_i)
+V_i <- OM_i@cpars$V
+nyears_i <- OM_i@nyears
+proyears_i <- OM_i@proyears
+cols_i <- rainbow(nyears_i)
+matplot(V_i[1,,1:nyears_i],type="l",lty=1,col=cols_i,main=OMName_i,xlab="age",ylab="V")
+matpoints(V_i[1,,nyears_i+(1:proyears_i)],type="l",lty=1,col="black",lwd=2)
+}
+```
 
-if(plot_OM){
+```{r save OM}
+OM_name_bam <- gsub("rdat","OM",bam_rdat_sub) # OM names from bam models
+  
+for(OM_name_i in OM_name_bam){
+  OM_i <- get(OM_name_i)
+  
+  if(OM_name_i%in%OM_name_bam){  saveRDS(OM_i,file=file.path("OM","SEFSC",paste0(OM_name_i,OM_name_suffix,".rds")),compress=FALSE)
+  }
+  
+}
+```
+
+```{r generate Hist}
+if(generate_Hist){
   
 for(OM_name_i in OM_name_bam){
   OM_i <- get(OM_name_i)
@@ -221,7 +332,6 @@ for(OM_name_i in OM_name_bam){
   Hist_name_i <- gsub("OM","Hist",OM_name_i)
   assign(Hist_name_i,Hist_i)
   saveRDS(Hist_i, file = file.path("Hist","SEFSC",paste0(Hist_name_i,".rds")))
-  saveRDS(OM_i,file=file.path("OM","SEFSC",paste0(OM_name_i,".rds")),compress=FALSE)
   }
   
 }
@@ -229,6 +339,7 @@ for(OM_name_i in OM_name_bam){
 ```
 
 ```{r plot Hist with bam  results, eval=TRUE}
+if(plot_Hist){
 pdf("HistBam.pdf")
 CIpct = 95
 
@@ -250,8 +361,6 @@ Nage_F0_pr_sc_i <- list_Nage_F0_pr_sc[[i]]
 
 par(mfrow=c(3,2),mgp=c(0.9,0.1,0),tck=-0.01,mar=c(2,2.5,1,1),oma=c(0,0,1.5,1))
 
-
-
 # Landings
 Lmatrix <- Hist_i@TSdata$Landings[,,1]+Hist_i@TSdata$Landings[,,2]
 Lbam <- t.series_i$total.L.klb
@@ -263,6 +372,15 @@ Lylim <- range(c(0,as.numeric(Lmatrix),Lbam))
 plot_boot_vec(Lmatrix,CIpct=CIpct,xlab="year",ylab="Landings + Discards (1000 lb)",ylim=Lylim)
 points(Lbam,type="o",#axes=FALSE,xlab="",ylab="",
      col="blue")
+
+legend("bottomleft",
+       legend=c("sim","BAM"),
+       lty=c(2,1),
+       pch=c(NA,1),
+       col=c("black","blue"),
+       bg=rgb(1,1,1,0.5),
+       inset=0.05
+       )
 
 
 # Indices
@@ -301,4 +419,5 @@ mtext(i,side=3,line=0,outer=TRUE)
 
 }
 dev.off()
+}
 ```

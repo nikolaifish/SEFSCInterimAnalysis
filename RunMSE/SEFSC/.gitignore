@@ -2,3 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+MSE_obj/*
+OM/*
+OM_modified/*
+run_script.RData
