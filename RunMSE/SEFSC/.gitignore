@@ -6,3 +6,10 @@ MSE_obj/*
 OM/*
 OM_modified/*
 run_script.RData
+CP_NOTES.R
+RunMSE/HCR_MSY/
+RunMSE/SEFSC/Data-Report.Rmd
+RunMSE/SEFSC/Data-Report.html
+RunMSE/SEFSC/Data-Report_files/
+RunMSE/SEFSC/Hist.html
+RunMSE/SEFSC/OM_files/
