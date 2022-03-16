@@ -14,7 +14,7 @@ urlcolor: blue
 
 ```{r setup, include=FALSE, echo=FALSE}
 rm(list=ls())
-knitr::opts_chunk$set(comment=NA,echo=FALSE,message=FALSE,warning=FALSE,fig.height=10,fig.width=8)
+knitr::opts_chunk$set(comment=NA,echo=FALSE,message=FALSE,warning=FALSE,fig.width=8,fig.height=10)
 
 library(Hmisc)
 library(knitr)
@@ -32,7 +32,11 @@ median_noNA <- function(x){median(x,na.rm=TRUE)}
 ```
 
 ```{r user}
-OMNames_user <- c("OM_BlackSeaBass","OM_VermilionSnapper",
+# Should individual PDFs be produced (or just plot in Rmd output)
+plot_pdf <- TRUE
+
+OMNames_user <- c("OM_BlackSeaBass",
+                  "OM_VermilionSnapper",
                   "OM_RedPorgy",
                    #"OM_Tilefish","OM_Cobia",
                   "OM_SnowyGrouper"#,
@@ -41,25 +45,42 @@ OMNames_user <- c("OM_BlackSeaBass","OM_VermilionSnapper",
                    )
 OMNames_huynh <- c("OM_CapelinHuynh", "OM_PacificOceanPerchHuynh", "OM_VermilionSnapperHuynh")
 
-scenNames_user <-  c("base",
-                     #"hs","hd",
-                     "nolag",
-                     "dep","lf",
-                     #"epiM",
-                     "rc","ubias","ucvhi","ucvlo"
-                     )
+scenNames_user1 <-  c("base","dep","lf","epiM","ubias","tachi","rc")
+scenNames_user2 <-  c("base","nolag","minerr","minrecdev","perfobs","ucvhi","ucvlo","vtiv"
+                        )
+
+# All scenarios
+scenNames_user <- unique(c(scenNames_user1,scenNames_user2))
+
+# Alternative realities
+# These scenarios are considered equally plausible, for the purposes of
+# averaging results together. Most other scenarios could be considered sensitivities.
+scenNames_user_alt <- c("base","dep","lf","epiM","ubias","tachi","rc")
+
 scenNames_key <- c("base"="Base",
                    "nolag"="No data lag",
                    "hs"="Hyper-stable","hd"="Hyper-deplete",
                    "dep"="Depleted","lf"="Lightly fished","epiM"="Episodic M",
-                   "rc"="Regime\nchange", "ubias"="Index\nbiased","ucvhi"="Index\nHigh CV","ucvlo"="Index\nLow CV")
+                   "rc"="Regime\nchange", "ubias"="Index\nbiased","ucvhi"="Index\nHigh CV",
+                   "ucvlo"="Index\nLow CV",
+                   "perfobs"="Perfect observation",
+                   "minerr"="Minimal error",
+                   "minrecdev"="Minimal rec devs",
+                   "tachi"="TAC 1.25MSY",
+                   "vtiv"="V time invariant"
+                   )
 
-MPNamesAll <-         c("AvC","DCAC","DBSRA","SPMSY",
+MPNamesAll <-         c(#"AvC",
+                        "CC1",
+                        #"DCAC","DBSRA","SPMSY",
                         "SCA_1","SCA_5","SCA_10",
-                        "iMP_avg_5","iMP_avg_10","iMP_buffer_5","iMP_buffer_10"
+                        "iMP_avg_5","iMP_avg_10",
+                        "iMP_buffer_5","iMP_buffer_10",
+                        "pMP_5","pMP_10"
                         )
 
 MPNamesAll_key <- c("AvC"="average catch",
+                    "CC1"="average catch (last 5 yr)",
                     "DCAC"= "depletion corrected average catch",
                     "DBSRA" = "depletion based stock reduction analysis",
                     "SPMSY" = "surplus production model",
@@ -69,7 +90,9 @@ MPNamesAll_key <- c("AvC"="average catch",
                     "iMP_avg_5" = "avg. index (5 yr)",
                     "iMP_avg_10" = "avg. index (10 yr)",
                     "iMP_buffer_5" = "buffer index (5 yr)",
-                    "iMP_buffer_10" = "buffer index (10 yr)"
+                    "iMP_buffer_10" = "buffer index (10 yr)",
+                    "pMP_5" = "projection (5 yr)",
+                    "pMP_10" = "projection (10 yr)"
                         )
 MPNamesAll_legtext <- MPNamesAll
 
@@ -111,6 +134,9 @@ ROGBP_alpha <- function(alpha){
     alpha=TRUE)
   return(x)
 }
+
+# Turn hexadecimal color opaque
+makeOpaque <-      function(hexcolor){gsub(".{2}$","FF",hexcolor)}
 
 P75 <- function(...,Ref=0.75){P50(...,Ref=Ref)}
 
@@ -156,26 +182,29 @@ MSEoutNames = paste0(rep(gsub("OM","MSE",OMNames),each=length(scenNames)),
                      ),
 colLabs = str_replace_all(gsub("OM_","",OMNames),"(?<=[a-z])(?=[A-Z])"," "),
 rowLabs = scenNames,
+sims = NULL, # which simulation runs should be used to generate the plot when plot_type="sims"?
 plot_type="huynh", # "huynh" plots time series by MP like in the Huynh et al paper
                    # "boot" plots times series of bootstrapped data  with bamExtras::plot_boot_vec
                    # "phase" plots phase plots of F/Fmsy versus SSB/SSBmsy
                    # "tradeoff" plots tradeoff plots by MP
                    # "addind" plot additional indices from AddInd
+                   # "sims" plot time series for individual sim runs
 proyear_phase=NULL,
 PMx = Yield, # Performance metric function x (x-axis) for tradeoff plots)
 PMy = P75, # Performance metric function y (y-axis) for tradeoff plots)
 mar=c(1,1,1,1),
 oma=c(6,4,3,3),
 mgp=c(1.5,0.2,0),
-cols = setNames(ROGBP(length(MPNamesSub)),MPNamesSub),
+cols = setNames(ROGBP_alpha(0.5)(length(MPNamesSub)),MPNamesSub),
 ltys = setNames(rep(1,length(MPNamesSub)),MPNamesSub),
 pchs = setNames(rep(16,length(MPNamesSub)),MPNamesSub),
 lwds = setNames(rep(3,length(MPNamesSub)),MPNamesSub),
 types = setNames(rep("l",length(MPNamesSub)),MPNamesSub),
 xlabel = "Management year",
+main_line = 1, # Line for main column labels
 xlim = NULL,
 ylim = NULL,
-assessmentYears = seq(10,40,by=10),
+assessmentYears=NULL,
 x.at = NULL,
 y.at = NULL,
 # leg.x=NULL,
@@ -183,15 +212,13 @@ y.at = NULL,
 legend_panel=NULL,
 legend_cex= 1,
 legend_x="bottomleft",
-legend_inset=c(0,-0.6),
+legend_inset=c(0,-0.5),
 label_axes="all", # "all" labels all panels, "leftbottom" labels y axes on the left and x axes on the bottom panels
 hline=1 # values to pass into abline(h=hline)
 ){
 if(is.null(legtext_o)){
   legtext_o <- seq_along(MPNamesSub)
 }
-  
-    
   
 xlim_user <- xlim
 ylim_user <- ylim
@@ -201,10 +228,15 @@ y.at_user <- y.at
 colLabsAll = as.character(matrix(c(colLabs,rep("",length(MSEoutNames)-length(colLabs))),ncol=length(colLabs),byrow=TRUE))
 rowLabsAll = as.character(matrix(c(rep("",length(MSEoutNames)-length(rowLabs)),rowLabs),nrow=length(rowLabs),byrow=FALSE))
 
-nrow <- length(rowLabs)
-ncol <- length(colLabs)
+dim1 <- length(rowLabs)
+dim2 <- length(colLabs)
 
-par(mfcol=c(nrow,ncol),mgp=mgp,mar=mar,oma=oma,tck=-0.01,xpd=FALSE,xaxs="i",yaxs="i")
+if(plot_type=="addind"){
+  mfcol <- c(dim2,dim1)}else{
+  mfcol <- c(dim1,dim2)
+}
+
+par(mfcol=mfcol,mgp=mgp,mar=mar,oma=oma,tck=-0.01,xpd=FALSE,xaxs="r",yaxs="r")
 
 ### LOOP THROUGH MSE OBJECTS
 for(outName_i in MSEoutNames){
@@ -216,11 +248,21 @@ rightPanels <- tail(seq_along(MSEoutNames),length(scenNames))
 i <- which(MSEoutNames==outName_i)
 out_i <- get(outName_i)
 MPNames <- out_i@MPs
-if(!is.expression(myvarName)){
-myvar <- slot(out_i,myvarName)  
-}else{
-myvar <- eval(myvarName) 
+    
+if(is.null(sims)){
+  sims <- 1:out_i@nsim
 }
+if(!is.expression(myvarName)){
+  myvar <- slot(out_i,myvarName)  
+}else{
+  myvar <- eval(myvarName) 
+}
+
+nyears_i <- out_i@nyears
+proyears_i <- out_i@proyears
+LHyear_i <- out_i@Hist@Data@LHYear # Last historic year
+histYears <- sort(LHyear_i - ((1:nyears_i)-1))
+projYears_i <- LHyear_i+1:proyears_i
 
 legend_panel <- bottomPanels[1]
 
@@ -251,10 +293,11 @@ if(is.null(ylim_user)){
   ylim <- range(myvarsubStat,na.rm=TRUE)
 }
 if(is.null(xlim_user)){
-  xlim <- range(as.numeric(rownames(myvarsubStat)),na.rm=TRUE)
+  xlim <- range(projYears_i,na.rm=TRUE)
 }
 
-matplot(as.numeric(rownames(myvarsubStat)),myvarsubStat,
+matplot(projYears_i#as.numeric(rownames(myvarsubStat))
+        ,myvarsubStat,
         col=cols,lty=ltys,lwd=lwds,type=types,
         xaxt=xaxt_i,yaxt=yaxt_i,
         xlim=xlim,ylim=ylim,xlab="",ylab="")
@@ -263,35 +306,90 @@ matplot(as.numeric(rownames(myvarsubStat)),myvarsubStat,
 grid(nx=NA,ny=NULL)
 abline(v=assessmentYears,lty="1111",lwd=2)
 }
+    if(plot_type=="sims"){
+      cols <-  ROGBP(length(sims))
+      ltys <-  1:length(MPNamesSub)
+      pchs <-  NA
+      lwds <-  3
+      types <- "l"
+      
+      myvarsub <- myvar[sims,match(MPNamesSub,MPNames),,drop=FALSE]
+      dimnames(myvarsub) <- list(sims,MPNamesSub,1:proyears_i)
+      
+      if(!is.null(MPNamesRef)){
+        myvarsub <- FUNRef(myvarsub,MPNamesRef)
+      }
+      
+      if(is.null(ylim_user)){
+        ylim <- range(myvarsub,na.rm=TRUE)
+      }
+      if(is.null(xlim_user)){
+        xlim <- range(projYears_i,na.rm=TRUE)
+      }
+      
+      for(MP_j in MPNamesSub){
+      j <- match(MP_j,MPNamesSub)
+      myvarsub_j <- myvarsub[,j,]
+      lty <- ltys[j]
+      if(j==1){
+      matplot(projYears_i,
+              t(myvarsub_j), 
+              col=cols,lty=lty,lwd=lwds,type=types,
+              xaxt=xaxt_i,yaxt=yaxt_i,
+              xlim=xlim,ylim=ylim,xlab="",ylab="")
+      #title(main=colLabsAll[i],line=1)
+      
+      grid(nx=NA,ny=NULL)
+      abline(v=assessmentYears,lty=2,lwd=1)
+      }else{
+        matpoints(t(myvarsub_j), 
+                col=cols,lty=lty,lwd=lwds,type=types
+                )        
+      }
+    }
+    }
 
 if(plot_type=="addind"){
+  PPDYears_i <- local({
+    a <- c(histYears,projYears_i)
+    a[-length(a)]
+  })
+if(is.null(assessmentYears)){
+assessmentYears <- apply(do.call(cbind,lapply(out_i@PPD[[MPNamesSub]]@Misc,FUN=function(x){x1 <- x$diagnostic; unlist(lapply(x1,FUN=function(xx){xx$Year}))})),1,median)
+}
+      
 if(!is.null(dim(myvar))){
 myvarsub <- myvar
-myvarsubStat <- apply(myvarsub,2,function(x){apply(x,2,FUN)})
+#myvarsubStat <- apply(myvarsub,2,function(x){apply(x,2,FUN)})
 }else{
-# myvarsubStat <- matrix(rep(myvar,length(MPNamesSub)),ncol=length(MPNamesSub))  
+  warning("is.null(dim(myvar) == TRUE. No option currently available for this situation.")
 }
-# dimnames(myvarsubStat) <- list(1:nrow(myvarsubStat),MPNamesSub)
-
-# if(!is.null(MPNamesRef)){
-# myvarsubStat <- FUNRef(myvarsubStat,MPNamesRef)
-# }
-
+dimnames(myvarsub) <- list("sim"=1:dim(myvarsub)[1],"AddInd"=1:dim(myvarsub)[2],"Year"=PPDYears_i)
 if(is.null(ylim_user)){
-  ylim <- range(myvarsubStat,na.rm=TRUE)
+  ylim <- range(myvarsub,na.rm=TRUE)
 }
 if(is.null(xlim_user)){
-  xlim <- c(1,nrow(myvarsubStat))
+  xlim <- range(PPDYears_i,na.rm=TRUE)
 }
-
-matplot(myvarsubStat,
-        col=cols,lty=ltys,lwd=lwds,type=types,
-        xaxt=xaxt_i,yaxt=yaxt_i,
-        xlim=xlim,ylim=ylim,xlab="",ylab="")
+# n_AddInd <- ncol(myvarsubStat)
+# cols <-  ROGBP_alpha(0.5)(n_AddInd)
+# matplot(PPDYears_i,myvarsubStat,
+#         col=cols,lty=ltys,lwd=lwds,type=types,
+#         xaxt=xaxt_i,yaxt=yaxt_i,
+#         xlim=xlim,ylim=ylim,xlab="",ylab="")
 #title(main=colLabsAll[i],line=1)
+n_AddInd <- dim(myvarsub)[2]
+col_AddInd <- ROGBP(n_AddInd)
+for(j in 1:n_AddInd){
 
+plot_boot_vec(myvarsub[,j,],
+              col_lines = col_AddInd[j],
+              add=ifelse(j!=1,TRUE,FALSE),
+              xlim=xlim,ylim=ylim)
+
+}
 grid(nx=NA,ny=NULL)
-abline(v=assessmentYears,lty="1111",lwd=2)
+abline(v=assessmentYears,lty=2,lwd=1)
 }
 
 if(plot_type=="boot"){
@@ -322,7 +420,7 @@ matplot(Fstatus,Bstatus,
         xlab="",ylab="",xlim=xlim,ylim=ylim
         )
 points(apply(Fstatus,2,median),
-       apply(Bstatus,2,median),pch=21,cex=3,lwd=2,col="black",bg=cols)
+       apply(Bstatus,2,median),pch=21,cex=3,lwd=2,col="black",bg=makeOpaque(cols))
 
   abline(v=1,lty=3)
   abline(h=1,lty=3)
@@ -364,14 +462,14 @@ if(is.null(y.at_user)){
 
 if(i%in%topPanels){
 col.ct <- which(topPanels==i)
-mtext(colLabsAll[i],side=3,line=1,outer=FALSE,font=2)
+mtext(colLabsAll[i],side=3,line=main_line,outer=FALSE,font=2)
 }
 
 if(i%in%rightPanels){
 row.ct <- which(rightPanels==i)
 rowcenter <-par("usr")[3]+diff(par("usr")[3:4])/2
-
-text(x=par("usr")[2]*1.05,y=rowcenter,rowLabsAll[i],
+text(x=par("usr")[2]+diff(par("usr")[1:2])*0.1
+     ,y=rowcenter,rowLabsAll[i],
      srt=-90,xpd=NA,font=2)
 }
 
@@ -399,7 +497,7 @@ if(i==legend_panel&plot_type%in%c("huynh","phase","tradeoff")){
           inset=legend_inset,
        horiz=TRUE,bty="n",
        legend=MPNamesSub_legtext[legtext_o],
-       col=cols[legtext_o],lty=ltys[legtext_o],lwd=lwds[legtext_o],pch=pchs[legtext_o],
+       col=makeOpaque(cols)[legtext_o],lty=ltys[legtext_o],lwd=lwds[legtext_o],pch=pchs[legtext_o],
        cex=legend_cex,
        xpd=NA,
        x.intersp=0.5
@@ -410,7 +508,6 @@ if(i==legend_panel&plot_type%in%c("huynh","phase","tradeoff")){
 
 mtext(ylabel,side=2,line=par("mgp")[1],outer=TRUE)
 mtext(xlabel,side=1,line= par("mgp")[1],outer=TRUE)
-
 
 }
 ```
@@ -591,14 +688,123 @@ mtext(xlabel,side=1,line=xlabel_line,outer=TRUE)
 }
 ```
 
-```{r function PMsummary}
-# compute and plot summary statistics
+```{r plot_MSE_sims function}
+plot_MSE_sims <- function(MSE, sims=NULL, MPs=NULL, proyears_ix=NULL,
+              varNames=NULL, rec_age=0,
+              type="proj", # period to plot: "proj", or "histproj"
+              title_main = NULL,
+              vline=NULL,vline_lty=3,
+              ...){
+MSEName <- deparse(substitute(MSE))
+if(is.null(varNames)){
+  varNames <- list("proj"=    c("Catch","FM","F_FMSY","recruit","SSB","SB_SBMSY"),
+                   "histproj"=c("Catch","FM","F_FMSY","recruit","SSB","SB_SBMSY"))[[type]]
+}
+  
+nyears <- MSE@nyears
+proyears <- MSE@proyears
+LHyear <- MSE@Hist@Data@LHYear # Last historic year
+histYears <- sort(LHyear - ((1:nyears)-1))
+projYears <- LHyear+1:proyears
 
-PMsummary <- function(myMPName,OMNames=OMNames_user,scenNames=scenNames_user){
-myMP <- get(myMPName)
+if(is.null(sims)){sims <- 1:3}  
+if(is.null(MPs)){MPs <- MSE@MPs[1]}
+if(is.null(proyears_ix))    {proyears_ix <- 1:proyears} 
+
+MPn <- match(MPs,MSE@MPs)
+  
+nr <- ceiling(sqrt(length(varNames)))
+nc <- ceiling(length(varNames)/nr)
+par(mfcol=c(nr,nc),mar=c(2,3,1,1),oma=c(0,0,2,0),mgp=c(1,0.2,0),tck=-0.01)
+
+for(varName_i in varNames){
+  for(MPn_j in  MPn){
+    MPn_j_ix <- match(MPn_j,MPn)
+    if(type=="proj"){
+      years_plot <- projYears
+      if(varName_i=="recruit"){
+        N <- Reduce("+",apply(MSE@Misc$extended$N,5,FUN=function(x){x},simplify = FALSE))
+        var_i <- N[,rec_age+1,,]
+        years_ix <-   tail(1:dim(var_i)[3],MSE@proyears)
+        # drop MP dimension but not sims
+        varSub_i <- var_i[sims,MPn_j,years_ix,drop=FALSE]
+        varSub_i <- matrix(varSub_i,nrow=dim(varSub_i)[1],ncol=dim(varSub_i)[3]) 
+      }else{
+        var_i <- slot(MSE,varName_i)
+        varSub_i <- var_i[sims,MPn_j,proyears_ix,drop=FALSE]
+        varSub_i <- matrix(varSub_i,nrow=dim(varSub_i)[1],ncol=dim(varSub_i)[3]) 
+      }
+    }
+    
+    if(type=="histproj"){
+      years_plot <- c(histYears, projYears)
+      if(varName_i=="recruit"){
+        N <- Reduce("+",apply(MSE@Misc$extended$N,5,FUN=function(x){x},simplify = FALSE))
+        var_i <- N[,rec_age+1,,]
+      }
+      if(varName_i%in%c("F","FM")){
+        FM <- apply(MSE@Misc$extended[["FM"]],c(1,3,4),max) # Max F over ages and areas
+        var_i <- FM
+      }
+      if(varName_i=="F_FMSY"){
+        FM <- apply(MSE@Misc$extended[["FM"]],c(1,3,4),max) # Max F over ages and areas
+        FMSY <- MSE@RefPoint$FMSY
+        var_i <- FM/FMSY
+      }
+      if(varName_i=="SB_SBMSY"){
+        SSB <- apply(MSE@Misc$extended[["SSB"]],c(1,3,4),sum) # Sum SSB over ages and areas
+        SSBMSY <- MSE@RefPoint$SSBMSY
+        var_i <- SSB/SSBMSY
+      }
+      if(!varName_i%in%c("F","FM","recruit","F_FMSY","SB_SBMSY")){
+        var_i <- Reduce("+",apply(MSE@Misc$extended[[varName_i]],5,FUN=function(x){x},simplify = FALSE))
+        var_i <- Reduce("+",apply(var_i,2,FUN=function(x){x},simplify = FALSE))
+      }
+      #varSub_i <- var_i[sims,MPn_j,] # Drops dimension to be matrix
+        varSub_i <- var_i[sims,MPn_j,,drop=FALSE]
+        varSub_i <- matrix(varSub_i,nrow=dim(varSub_i)[1],ncol=dim(varSub_i)[3]) 
+    }
+    if(match(MPn_j,MPn)==1){
+      matplot(years_plot,t(varSub_i),type="l",
+              col=ROGBP(length(sims)),xlab="",ylab=varName_i, lty=MPn_j_ix,...)
+    }else{
+      matpoints(years_plot,t(varSub_i),type="l",
+                col=ROGBP(length(sims)),lty=MPn_j_ix,...)
+    }    
+  }
+  if(match(varName_i,varNames)==1){
+    legend("topright",legend=MPs,lty=1:length(MPs),bty="n")
+  }
+  if(is.null(vline)){vline <- LHyear}
+  abline(v=vline,lty=vline_lty)
+}
+if(is.null(title_main)){
+  title_main <- paste(MSEName,MPs,sep=": ")
+}
+title(main=title_main,outer = TRUE)
+}
+
+```
+
+```{r function PMsummary}
+# compute and plot summary statistics for Performance metrics
+PMsummary <- function(PMName,OMNames=OMNames_user,scenNames,MPs=NULL,
+                      slot_to_plot="Prob", # Can be either "Prob" or "Stat"
+                      main_line=-1.5,
+                      hline=1,hline_lty=1,
+                      par_args=list(mfrow=c(length(OMNames),1), 
+                                    mar=c(0,2,0,1), oma=c(6,2,1,0),
+                                    mgp=c(0.8,0.2,0), tck=-0.01),
+                      ...){
+PM <- get(PMName)
+dots <- list(...)
+if(!"ylab"%in%names(dots)){
+  dots$ylab <- PMName
+}
+
 out_list <- list()
 
-par(mfrow=c(length(OMNames),1),mar=c(2,2,2,1),oma=c(0,2,0,0),mgp=c(0.8,0.2,0),tck=-0.01)
+do.call(par,par_args)
 
 for (OMNames_i in OMNames){
 Names_i <- gsub("^OM_","",OMNames_i)
@@ -606,31 +812,94 @@ MSEoutNames_i = paste0(rep(gsub("OM","MSE",OMNames_i),each=length(scenNames)),
                      "_",
                      rep(scenNames,length(OMNames_i))
                      )
-    Prob_list_i <- list()
+    out_list_i <- list()
     for(MSEoutNames_ij in MSEoutNames_i){
       scenNames_j <- str_extract(MSEoutNames_ij,"[a-z]+$")
       MSEout_ij <- get(MSEoutNames_ij)
-      PMout_ij <- myMP(MSEout_ij)
-      MPs_ij <- PMout_ij@MPs
-      Prob_ij <- PMout_ij@Prob
-      dimnames(Prob_ij) <- list("sim"=seq(1:dim(Prob_ij)[1]), "MPs"=MPs_ij)
-      Prob_ij <- cbind("scen"=scenNames_j,as.data.frame(Prob_ij))
-      Prob_list_i[[MSEoutNames_ij]] <- Prob_ij
-    
+      PMout_ij <- PM(MSEout_ij)
+        MPs_ij <- PMout_ij@MPs
+        out_ij <- slot(PMout_ij,slot_to_plot)
+      if(!is.null(MPs)){
+        out_ij <- out_ij[,match(MPs,MPs_ij)]
+        MPs_ij <- MPs
+      }
+      dimnames(out_ij) <- list("sim"=seq(1:dim(out_ij)[1]), "MPs"=MPs_ij)
+      out_ij <- cbind("scen"=scenNames_j,as.data.frame(out_ij))
+      out_list_i[[MSEoutNames_ij]] <- out_ij
+      
     }
     # Combine scenario outputs into large data frame with scen column indicating scenario
-    Prob_df_i <- do.call(rbind,Prob_list_i)
-    out_list[[paste0("Prob_df_",Names_i,"_",myMPName)]] <- Prob_df_i
-
+      out_df_i <- do.call(rbind,out_list_i)
+      out_list[[paste0("out_df_",Names_i,"_",PMName)]] <- out_df_i
     # Plot stuff
-    boxplot(Prob_df_i[,-1],ylab=myMPName,main=Names_i)
+      dots$xaxt <- ifelse(match(OMNames_i,rev(OMNames))==1,"s","n")
+      
+      do.call(boxplot,c(list(out_df_i[,-1],main=""),dots))
+      mtext(Names_i,side=3,line=main_line,outer=FALSE,font=2)
+      abline(h=hline,lty=hline_lty)
     }
-
 
 invisible(out_list)
 }
 ```
 
+```{r function MSEsummary}
+# compute and plot summary statistics for Performance metrics
+MSEsummary <- function(MSEslotName,OMNames=OMNames_user,scenNames,MPs=NULL,
+                       main_line=-1.5,
+                       hline=1,hline_lty=1,
+                      par_args=list(mfrow=c(length(OMNames),1),
+                                    mar=c(3,2,1,1), oma=c(1,2,0,0),
+                                    mgp=c(0.8,0.2,0), tck=-0.01),
+                      ...){
+dots <- list(...)
+if(!"ylab"%in%names(dots)){
+  dots$ylab <- MSEslotName
+}
+out_list <- list()
+
+do.call(par,par_args)
+
+for (OMNames_i in OMNames){
+  Names_i <- gsub("^OM_","",OMNames_i)
+  MSEoutNames_i = paste0(rep(gsub("OM","MSE",OMNames_i),each=length(scenNames)),
+                         "_",
+                         rep(scenNames,length(OMNames_i))
+  )
+  slot_list_i <- list()
+  for(MSEoutNames_ij in MSEoutNames_i){
+    scenNames_j <- str_extract(MSEoutNames_ij,"[a-z]+$")
+    MSEout_ij <- get(MSEoutNames_ij)
+    if(!is.expression(MSEslotName)){
+      slot_k <- slot(MSEout_ij,MSEslotName) %>% apply(2,as.numeric)
+    }else{
+      slot_k <- eval(MSEslotName) %>% apply(2,as.numeric)
+    }
+    slot_k <- slot(MSEout_ij,MSEslotName) %>% apply(2,as.numeric)
+    MPs_ij <- MSEout_ij@MPs
+    if(!is.null(MPs)){
+      slot_k <- slot_k[,match(MPs,MPs_ij)]
+      MPs_ij <- MPs
+    }
+    dimnames(slot_k) <- list(NULL, "MPs"=MPs_ij)
+    slot_k <- cbind("scen"=scenNames_j,as.data.frame(slot_k))
+    slot_list_i[[MSEoutNames_ij]] <- slot_k
+    
+  }
+  # Combine scenario outputs into large data frame with scen column indicating scenario
+  slot_df_i <- do.call(rbind,slot_list_i)
+  out_list[[paste0("slot_df_",Names_i,"_",MSEslotName)]] <- slot_df_i
+  
+  # Plot stuff
+  do.call(boxplot,c(list(slot_df_i[,-1],main=""),dots))
+  mtext(Names_i,side=3,line=main_line,outer=FALSE,font=2)
+  abline(h=hline,lty=hline_lty)
+}
+
+
+invisible(out_list)
+}
+```
 
 ```{r data}
 # Read in data for original operating models
@@ -667,30 +936,15 @@ for(file.i in list.files("MSE_obj")){
   names(out_i@PPD) <- out_i@MPs
   assign(gsub(".rds","",file.i),readRDS(file.path("MSE_obj",file.i)))
 }
-
-# # Merge sets of MSE results
-# for(i in  OMNames_user){
-#   for(j in scenNames_user){
-#     OMscenName <- paste0(i,"_",j)
-#     MSEName <- gsub("OM","MSE",OMscenName)
-#     a <- mget(MSE_res_names[grepl(OMscenName,MSE_res_names)])
-#     b <- do.call(merge_MSE, args=a)
-#     assign(MSEName,b)
-#   }
-# }
-# 
-# rm(list=MSE_res_names)
-# MSE_res_names <- gsub("OM","MSE",apply(expand.grid(OMNames_user,scenNames_user),1,function(x){paste(x,collapse ="_")}))
-
 ```
 
 ```{r OMNames set 1,eval=TRUE}
 OMNames <- OMNames_user#[1:3]
 speciesNames <- gsub("OM_","",OMNames)
 speciesNames_huynh <- gsub("OM_","",OMNames_huynh)
-MSEoutNames_user <- paste0(rep(gsub("OM","MSE",OMNames),each=length(scenNames_user)),
+MSEoutNames_user1 <- paste0(rep(gsub("OM","MSE",OMNames),each=length(scenNames_user1)),
                      "_",
-                     rep(scenNames_user,length(OMNames))
+                     rep(scenNames_user1,length(OMNames))
                      )
 
 ```
@@ -715,7 +969,7 @@ if(i==length(OMNames)){
 
 ```{r plot selectivities,fig.cap=paste0("\\label{fig:selex} Vulnerability schedules at age used in the operating models during the historical period (colored lines in rainbow order) and projection period (black lines)",combine_words(speciesNames),". Growth is expressed as mean length-at-age relative to that at the maximum age.")} 
 par(mfrow=c(length(OMNames),1),mgp=c(1,0.2,0),mar=c(3,2,1.5,1),oma=c(1,2,1,1),tck=-0.01)
-for(OMName_i in paste0(OMNames,"_base")){
+for(OMName_i in OMNames){#paste0(OMNames,"_base")){
 OM_i <- get(OMName_i)
 V_i <- OM_i@cpars$V
 nyears_i <- OM_i@nyears
@@ -727,7 +981,7 @@ matpoints(V_i[1,,nyears_i+(1:proyears_i)],type="l",lty=1,col="black",lwd=2)
 
 ```
 
-```{r plot selectivities huynh,fig.cap=paste0("\\label{fig:selexhuynh} Vulnerability schedules at age used in the operating models during the historical period (colored lines in rainbow order) and projection period (black lines)",combine_words(speciesNames_huynh),". Growth is expressed as mean length-at-age relative to that at the maximum age.")} 
+```{r plot selectivities huynh,fig.cap=paste0("\\label{fig:selexhuynh} Vulnerability schedules at age used in the operating models during the historical period (colored lines in rainbow order) and projection period (black lines)",combine_words(speciesNames_huynh),". Growth is expressed as mean length-at-age relative to that at the maximum age."),eval=FALSE} 
 par(mfrow=c(length(OMNames_huynh),1),mgp=c(1,0.2,0),mar=c(3,2,1.5,1),oma=c(1,2,1,1),tck=-0.01)
 for(OMName_i in OMNames_huynh){
 OM_i <- get(OMName_i)
@@ -741,21 +995,20 @@ matpoints(V_i[1,,nyears_i+(1:proyears_i)],type="l",lty=1,col="black",lwd=2)
 
 ```
 
-```{r plot indices, eval=TRUE}
+```{r plot Ind, eval=FALSE}
 # This code is set up to make each set of plots for each MP, but the indices are basically the same
 
-for(MP_name_i in MPNamesAll){
+for(MP_name_i in "SCA_5"){#MPNamesAll[1]){
     # Ind
-    # MSE_i <- get(MSE_name_j)
     plot_MSE_ts(
-      OMNames= OMNames, scenNames=scenNames_user,
+      OMNames= OMNames, scenNames=scenNames_user1,
       myvarName = expression(slot(out_i@PPD[[MP_name_i]],"Ind")),
       plot_type = "boot",
       FUN = mean_noNA,
       ylabel = "index of abundance",
       MPNamesSub = MPNamesSub_user,
       MPNamesSub_legtext=MPNamesSub_user_legtext,
-      rowLabs=scenNames_key[scenNames_user],
+      rowLabs=scenNames_key[scenNames_user1],
       oma=c(3,4,5,3),
       ylim=c(0,4)
     )
@@ -763,37 +1016,199 @@ for(MP_name_i in MPNamesAll){
 }
 ```
 
-```{r plot addindices, eval=FALSE}
+```{r plot AddInd, eval=TRUE}
 # This code is set up to make each set of plots for each MP, but the indices are basically the same
-
-for(MP_name_i in MPNamesAll){
+if(plot_pdf){pdf("Figs/AddInd.pdf")}
+for(MP_name_i in "SCA_5"){#MPNamesAll){
     # Ind
     # MSE_i <- get(MSE_name_j)
     plot_MSE_ts(
-      OMNames= OMNames, scenNames="addind",
+      OMNames= OMNames, scenNames="base",
       myvarName = expression(slot(out_i@PPD[[MP_name_i]],"AddInd")),
       plot_type = "addind",
       ylabel = "index of abundance",
-      FUN=mean_noNA,
-      MPNamesSub = MPNamesSub_user,
-      MPNamesSub_legtext=MPNamesSub_user_legtext,
-      rowLabs=scenNames_key["addind"],
+      # FUN=mean_noNA,
+      MPNamesSub = MP_name_i,
+      # MPNamesSub_legtext=MPNamesSub_user_legtext,
+      #rowLabs=scenNames_key["addind"],
+      xlabel="year",
       oma=c(3,4,5,3),
-      ylim=c(0,4)
+      ylim=c(0,8),
+      main_line = -1.5,
+      hline=NA
     )
-  title(main=MP_name_i,outer=TRUE)
+  #title(main=MP_name_i,outer=TRUE)
+}
+if(plot_pdf){dev.off()}
+```
+
+```{r plot sims proj base, eval=FALSE}
+MPs_sim <- c("SCA_1","SCA_5","iMP_avg_10")
+scen <- "base"
+
+for(OMName_i in OMNames_user){
+Name_i <- gsub("^OM_","",OMName_i)
+MSEoutName_i <- paste0(gsub("^OM","MSE",OMName_i),paste0("_",scen))
+MSEOut_i <- get(MSEoutName_i)
+
+figName_ij <- paste0("sims_",MSEoutName_i,"_",scen,".pdf")
+if(plot_pdf){pdf(file.path("Figs",figName_ij))}
+plot_MSE_sims(MSEOut_i,MPs=MPs_sim,type="proj",
+              lwd=2,sims=sample(1,1:50),
+              title_main = paste0(Name_i,", ",scen),
+              varNames = c("Catch","TAC","FM","F_FMSY",#"recruit",
+                           "SSB","SB_SBMSY"))
+if(plot_pdf){dev.off()}
+}
+
+```
+
+```{r plot sims base}
+MPs_sim <- c("SCA_1","SCA_5","iMP_avg_10")
+scen <- "base"
+
+for(OMName_i in OMNames_user){
+Name_i <- gsub("^OM_","",OMName_i)
+MSEoutName_i <- paste0(gsub("^OM","MSE",OMName_i),paste0("_",scen))
+MSEOut_i <- get(MSEoutName_i)
+
+figName_ij <- paste0("sims_",MSEoutName_i,"_",scen,".pdf")
+if(plot_pdf){pdf(file.path("Figs",figName_ij))}
+plot_MSE_sims(MSEOut_i,MPs=MPs_sim,type="histproj",
+              lwd=2,sims=sample(1,1:50),
+              title_main = paste0(Name_i,", ",scen))
+if(plot_pdf){dev.off()}
+}
+
+```
+
+```{r plot sims minerr, eval=TRUE}
+MPs_sim <- c("SCA_1","SCA_5","iMP_avg_10")
+scen <- "minerr"
+
+for(OMName_i in OMNames_user){
+Name_i <- gsub("^OM_","",OMName_i)
+MSEoutName_i <- paste0(gsub("^OM","MSE",OMName_i),paste0("_",scen))
+MSEOut_i <- get(MSEoutName_i)
+
+figName_ij <- paste0("sims_",MSEoutName_i,"_",scen,".pdf")
+if(plot_pdf){pdf(file.path("Figs",figName_ij))}
+plot_MSE_sims(MSEOut_i,MPs=MPs_sim,type="histproj",
+              lwd=2,sims=1,
+              title_main = paste0(Name_i,", ",scen))
+if(plot_pdf){dev.off()}
 }
 ```
 
-```{r summary plots}
-P75_out <- PMsummary("P75")
+```{r plot sims minrecdev}
+MPs_sim <- c("SCA_1","SCA_5","iMP_avg_10")
+scen <- "minrecdev"
+
+for(OMName_i in OMNames_user){
+Name_i <- gsub("^OM_","",OMName_i)
+MSEoutName_i <- paste0(gsub("^OM","MSE",OMName_i),paste0("_",scen))
+MSEOut_i <- get(MSEoutName_i)
+
+figName_ij <- paste0("sims_",MSEoutName_i,"_",scen,".pdf")
+if(plot_pdf){pdf(file.path("Figs",figName_ij))}
+plot_MSE_sims(MSEOut_i,MPs=MPs_sim,type="histproj",
+              lwd=2,sims=1,
+              title_main = paste0(Name_i,", ",scen))
+if(plot_pdf){dev.off()}
+}
+
+# Check if assessments are converging and hessians inverting
+# unlist(lapply(MSE_BlackSeaBass_minrecdev@PPD$SCA_1@Misc,function(i){table(unlist(lapply(i$diagnostic,function(j){j$hess})))}))
+```
+
+```{r plot sims perfobs}
+MPs_sim <- c("SCA_1","SCA_5","iMP_avg_10")
+scen <- "perfobs"
+
+for(OMName_i in OMNames_user){
+Name_i <- gsub("^OM_","",OMName_i)
+MSEoutName_i <- paste0(gsub("^OM","MSE",OMName_i),paste0("_",scen))
+MSEOut_i <- get(MSEoutName_i)
+
+figName_ij <- paste0("sims_",MSEoutName_i,"_",scen,".pdf")
+if(plot_pdf){pdf(file.path("Figs",figName_ij))}
+plot_MSE_sims(MSEOut_i,MPs=MPs_sim,type="histproj",
+              lwd=2,sims=1,
+              title_main = paste0(Name_i,", ",scen))
+if(plot_pdf){dev.off()}
+}
+
+```
+
+```{r plot sims "vtiv"}
+MPs_sim <- c("SCA_1","SCA_5","iMP_avg_10")
+scen <- "vtiv"
+
+for(OMName_i in OMNames_user){
+Name_i <- gsub("^OM_","",OMName_i)
+MSEoutName_i <- paste0(gsub("^OM","MSE",OMName_i),paste0("_",scen))
+MSEOut_i <- get(MSEoutName_i)
+
+figName_ij <- paste0("sims_",MSEoutName_i,"_",scen,".pdf")
+#if(plot_pdf){pdf(file.path("Figs",figName_ij))}
+plot_MSE_sims(MSEOut_i,MPs=MPs_sim,type="histproj",
+              lwd=2,sims=1,
+              title_main = paste0(Name_i,", ",scen))
+#if(plot_pdf){dev.off()}
+}
+
+```
+
+
+```{r summary plots, eval=TRUE}
+# Summary plots combining all years and all scenarios
+
+if(plot_pdf){pdf("Figs/boxplot_P_Bgrt75BMSY.pdf")}
+P75_out <- PMsummary("P75",scenNames=scenNames_user_alt,MPs=MPNamesAll,
+                     cex.axis=1,las=2,outline=FALSE,
+                     boxwex=0.25,ylab="",ylim=c(0,1.1),
+                     hline=NA)
 mtext("P(B > 0.75 BMSY)",2,outer=TRUE,font=2)
+if(plot_pdf){dev.off()}
 
-PNOF_out <- PMsummary("PNOF")
+if(plot_pdf){pdf("Figs/boxplot_P_BgrtBMSY.pdf")}
+P100_out <- PMsummary("P100",scenNames=scenNames_user_alt,MPs=MPNamesAll,
+                     cex.axis=1,las=2,outline=FALSE,
+                     boxwex=0.25,ylab="",ylim=c(0,1.1),
+                     hline=NA)
+mtext("P(B > BMSY)",2,outer=TRUE,font=2)
+if(plot_pdf){dev.off()}
+
+if(plot_pdf){pdf("Figs/boxplot_P_FlssFMSY.pdf")}
+PNOF_out <- PMsummary("PNOF",scenNames=scenNames_user_alt,MPs=MPNamesAll,
+                     cex.axis=1,las=2,outline=FALSE,
+                     boxwex=0.25,ylab="",ylim=c(0,1.1),
+                     hline=NA)
 mtext("P(F < FMSY)",2,outer=TRUE,font=2)
+if(plot_pdf){dev.off()}
 
-AAVY_out <- PMsummary("AAVY")
-mtext("P(AAVY < 0.2) (Average Annual Variability in Yield)",2,outer=TRUE,font=2) 
+if(plot_pdf){pdf("Figs/boxplot_AAVY.pdf")}
+AAVY_out <- PMsummary("AAVY",scenNames=scenNames_user_alt,MPs=MPNamesAll,
+                      slot_to_plot = "Stat",
+                     cex.axis=1,las=2,outline=FALSE,
+                     boxwex=0.25,ylab="",ylim=c(0,1.1),
+                     hline=NA)
+mtext("Avg. Annual Variability in Yield",2,outer=TRUE,font=2)
+if(plot_pdf){dev.off()}
+
+if(plot_pdf){pdf("Figs/boxplot_SB_SBMSY.pdf")}
+MSEsummary("SB_SBMSY",scenNames=scenNames_user_alt,MPs=MPNamesAll,
+           cex.axis=0.75,las=2,outline=FALSE,boxwex=0.25,ylab="")
+mtext("SSB/SSBmsy",2,outer=TRUE,font=2)
+if(plot_pdf){dev.off()}
+
+if(plot_pdf){pdf("Figs/boxplot_F_FSY.pdf")}
+MSEsummary("F_FMSY",scenNames=scenNames_user_alt,MPs=MPNamesAll,
+           cex.axis=0.75,las=2,outline=FALSE,boxwex=0.25,ylab="")
+mtext("F/Fmsy",2,outer=TRUE,font=2)
+if(plot_pdf){dev.off()}
+
+
 
 ## Which is the best MP?
 
@@ -804,102 +1219,113 @@ mtext("P(AAVY < 0.2) (Average Annual Variability in Yield)",2,outer=TRUE,font=2)
 ### Lowest probability of overfishing
 ```
 
-
-```{r plot time series,eval=TRUE}
+```{r plot time series1,eval=FALSE}
 # # VB
 # plot_MSE_ts(
-# OMNames= OMNames, scenNames=scenNames_user,
+# OMNames= OMNames, scenNames=scenNames_user1,
 # myvarName = "VB",
 # ylabel = expression(mean~(VB)),
 # FUN = mean,
 # MPNamesSub = MPNamesSub_user,
 # MPNamesSub_legtext=MPNamesSub_user_legtext,
-# rowLabs=scenNames_key[scenNames_user]
+# rowLabs=scenNames_key[scenNames_user1]
 # )
 
 # SSB
+if(plot_pdf){pdf("Figs/ts_SSB.pdf")}
 plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user,
+  OMNames= OMNames, scenNames=scenNames_user1,
   myvarName = "SSB",
   ylabel = expression(mean~(SSB)),
   FUN = mean,
   MPNamesSub = MPNamesSub_user,
   MPNamesSub_legtext=MPNamesSub_user_legtext,
-  rowLabs=scenNames_key[scenNames_user]
+  rowLabs=scenNames_key[scenNames_user1]
 )
+if(plot_pdf){dev.off()}
 # 
 # # F
 # plot_MSE_ts(
-# OMNames= OMNames, scenNames=scenNames_user,  
+# OMNames= OMNames, scenNames=scenNames_user1,  
 # myvarName = "FM",
 # ylabel = expression(mean~(F)),
 # FUN = mean,
 # MPNamesSub = MPNamesSub_user,
 # MPNamesSub_legtext=MPNamesSub_user_legtext,
-# rowLabs=scenNames_key[scenNames_user]
+# rowLabs=scenNames_key[scenNames_user1]
 # )
 # 
 # # TAC
 # plot_MSE_ts(
-# OMNames= OMNames, scenNames=scenNames_user,  
+# OMNames= OMNames, scenNames=scenNames_user1,  
 # myvarName = "TAC",
 # ylabel = expression(mean~(TAC)),
 # FUN = mean,
 # MPNamesSub = MPNamesSub_user,
 # MPNamesSub_legtext=MPNamesSub_user_legtext,
-# rowLabs=scenNames_key[scenNames_user] 
+# rowLabs=scenNames_key[scenNames_user1] 
 # )
 
 # Catch
+if(plot_pdf){pdf("Figs/ts_Catch.pdf")}
 plot_MSE_ts(
-OMNames= OMNames, scenNames=scenNames_user,  
+OMNames= OMNames, scenNames=scenNames_user1,  
 myvarName = "Catch",
 ylabel = expression(mean~(Catch)),
 FUN = mean,
 MPNamesSub = MPNamesSub_user,
 MPNamesSub_legtext=MPNamesSub_user_legtext,
-rowLabs=scenNames_key[scenNames_user]
+rowLabs=scenNames_key[scenNames_user1]
 )
+if(plot_pdf){dev.off()}
 
 # SSB/SSBmsy
+if(plot_pdf){pdf("Figs/ts_SSB_SSBmsy.pdf")}
 plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user,
+  OMNames= OMNames, scenNames=scenNames_user1,
   myvarName = "SB_SBMSY",
   ylabel = expression(mean~(SSB/SSBmsy)),
   FUN = mean,
-  ylim=c(0,2),
+  #ylim=c(0,2),
   MPNamesSub = MPNamesSub_user,
   MPNamesSub_legtext=MPNamesSub_user_legtext,
-  rowLabs=scenNames_key[scenNames_user]
+  rowLabs=scenNames_key[scenNames_user1]
 )
+if(plot_pdf){dev.off()}
 
 # F/Fmsy
+if(plot_pdf){pdf("Figs/ts_F_Fmsy.pdf")}
 plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user,
+  OMNames= OMNames, scenNames=scenNames_user1,
   myvarName = "F_FMSY",
   ylabel = expression(mean~(F/Fmsy)),
   FUN = mean,
-  ylim=c(0,2),
+  #ylim=c(0,2),
   MPNamesSub = MPNamesSub_user,
-  rowLabs=scenNames_key[scenNames_user]
+  MPNamesSub_legtext=MPNamesSub_user_legtext,
+  rowLabs=scenNames_key[scenNames_user1]
 )
+if(plot_pdf){dev.off()}
 
 # C/MSY
+if(plot_pdf){pdf("Figs/ts_Catch_MSY.pdf")}
 plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user,
+  OMNames= OMNames, scenNames=scenNames_user1,
   myvarName = "Catch",
   myvarDenomExpr = expression(slot(out_i,"RefPoint")$MSY[,,-(1:out_i@nyears)]),
   ylabel = expression(mean~(Catch/MSY)),
   FUN = mean,
-  ylim=c(0,2),
+  #ylim=c(0,2),
   MPNamesSub = MPNamesSub_user,
   MPNamesSub_legtext=MPNamesSub_user_legtext,
-  rowLabs=scenNames_key[scenNames_user]
+  rowLabs=scenNames_key[scenNames_user1]
 )
+if(plot_pdf){dev.off()}
+
 # 
 # # TAC/MSY
 # plot_MSE_ts(
-#   OMNames= OMNames, scenNames=scenNames_user,
+#   OMNames= OMNames, scenNames=scenNames_user1,
 #   myvarName = "TAC",
 #   myvarDenomExpr = expression(slot(out_i,"RefPoint")$MSY[,,-(1:out_i@nyears)]),
 #   ylabel = expression(mean~(TAC/MSY)),
@@ -907,12 +1333,12 @@ plot_MSE_ts(
 #   ylim=c(0,2),
 #   MPNamesSub = MPNamesSub_user,
 #   MPNamesSub_legtext=MPNamesSub_user_legtext,
-#   rowLabs=scenNames_key[scenNames_user]
+#   rowLabs=scenNames_key[scenNames_user1]
 # )
 # 
 # # C/TAC
 # plot_MSE_ts(
-#   OMNames= OMNames, scenNames=scenNames_user,  
+#   OMNames= OMNames, scenNames=scenNames_user1,  
 #   myvarName = "Catch",
 #   myvarDenomExpr = expression(slot(out_i,"TAC")),
 #   ylabel = expression(mean~(C/TAC)),
@@ -920,154 +1346,329 @@ plot_MSE_ts(
 #   ylim=c(0,1.1),
 #   MPNamesSub = MPNamesSub_user,
 #   MPNamesSub_legtext=MPNamesSub_user_legtext,
-#   rowLabs=scenNames_key[scenNames_user]
+#   rowLabs=scenNames_key[scenNames_user1]
 # )
 # 
 # # MSY
 # plot_MSE_ts(
-# OMNames= OMNames, scenNames=scenNames_user,
+# OMNames= OMNames, scenNames=scenNames_user1,
 # myvarName = expression(slot(out_i,"RefPoint")$MSY[,,-(1:out_i@nyears)]),
 # FUN = mean,
 # ylabel= expression(mean~(MSY)),
 # MPNamesSub = MPNamesSub_user,
 # MPNamesSub_legtext=MPNamesSub_user_legtext,
-# rowLabs=scenNames_key[scenNames_user]
+# rowLabs=scenNames_key[scenNames_user1]
 # )
 # 
 # # SSBMSY
 # plot_MSE_ts(
-# OMNames= OMNames, scenNames=scenNames_user,
+# OMNames= OMNames, scenNames=scenNames_user1,
 # myvarName = expression(slot(out_i,"RefPoint")$SSBMSY[,,-(1:out_i@nyears)]),
 # FUN = mean,
 # ylabel= expression(mean~(SSBMSY)),
 # MPNamesSub = MPNamesSub_user,
 # MPNamesSub_legtext=MPNamesSub_user_legtext,
-# rowLabs=scenNames_key[scenNames_user]
+# rowLabs=scenNames_key[scenNames_user1]
 # )
 # 
 # # FMSY
 # plot_MSE_ts(
-# OMNames= OMNames, scenNames=scenNames_user,
+# OMNames= OMNames, scenNames=scenNames_user1,
 # myvarName = expression(slot(out_i,"RefPoint")$FMSY[,,-(1:out_i@nyears)]),
 # FUN = mean,
 # ylabel= expression(mean~(FMSY)),
 # MPNamesSub = MPNamesSub_user,
 # MPNamesSub_legtext=MPNamesSub_user_legtext,
-# rowLabs=scenNames_key[scenNames_user]
+# rowLabs=scenNames_key[scenNames_user1]
 # )
 # 
 # # UMSY
 # plot_MSE_ts(
-# OMNames= OMNames, scenNames=scenNames_user,
+# OMNames= OMNames, scenNames=scenNames_user1,
 # myvarName = expression(F2U(slot(out_i,"RefPoint")$FMSY[,,-(1:out_i@nyears)])),
 # FUN = mean,
 # ylabel= expression(mean~(UMSY)),
 # MPNamesSub = MPNamesSub_user,
 # MPNamesSub_legtext=MPNamesSub_user_legtext,
-# rowLabs=scenNames_key[scenNames_user]
+# rowLabs=scenNames_key[scenNames_user1]
 # )
 ```
 
-```{r plot time series RE,eval=TRUE}
+```{r plot time series2,eval=TRUE}
 # # VB
 # plot_MSE_ts(
-# OMNames= OMNames, scenNames=scenNames_user,
+# OMNames= OMNames, scenNames=scenNames_user2,
+# myvarName = "VB",
+# ylabel = expression(mean~(VB)),
+# FUN = mean,
+# MPNamesSub = MPNamesSub_user,
+# MPNamesSub_legtext=MPNamesSub_user_legtext,
+# rowLabs=scenNames_key[scenNames_user2]
+# )
+
+# SSB
+if(plot_pdf){pdf("Figs/ts_SSB.pdf")}
+plot_MSE_ts(
+  OMNames= OMNames, scenNames=scenNames_user2,
+  myvarName = "SSB",
+  ylabel = expression(mean~(SSB)),
+  FUN = mean,
+  MPNamesSub = MPNamesSub_user,
+  MPNamesSub_legtext=MPNamesSub_user_legtext,
+  rowLabs=scenNames_key[scenNames_user2]
+)
+if(plot_pdf){dev.off()}
+# 
+# # F
+# plot_MSE_ts(
+# OMNames= OMNames, scenNames=scenNames_user2,  
+# myvarName = "FM",
+# ylabel = expression(mean~(F)),
+# FUN = mean,
+# MPNamesSub = MPNamesSub_user,
+# MPNamesSub_legtext=MPNamesSub_user_legtext,
+# rowLabs=scenNames_key[scenNames_user2]
+# )
+# 
+# # TAC
+# plot_MSE_ts(
+# OMNames= OMNames, scenNames=scenNames_user2,  
+# myvarName = "TAC",
+# ylabel = expression(mean~(TAC)),
+# FUN = mean,
+# MPNamesSub = MPNamesSub_user,
+# MPNamesSub_legtext=MPNamesSub_user_legtext,
+# rowLabs=scenNames_key[scenNames_user2] 
+# )
+
+# Catch
+if(plot_pdf){pdf("Figs/ts_Catch.pdf")}
+plot_MSE_ts(
+OMNames= OMNames, scenNames=scenNames_user2,  
+myvarName = "Catch",
+ylabel = expression(mean~(Catch)),
+FUN = mean,
+MPNamesSub = MPNamesSub_user,
+MPNamesSub_legtext=MPNamesSub_user_legtext,
+rowLabs=scenNames_key[scenNames_user2]
+)
+if(plot_pdf){dev.off()}
+
+# SSB/SSBmsy
+if(plot_pdf){pdf("Figs/ts_SSB_SSBmsy.pdf")}
+plot_MSE_ts(
+  OMNames= OMNames, scenNames=scenNames_user2,
+  myvarName = "SB_SBMSY",
+  ylabel = expression(mean~(SSB/SSBmsy)),
+  FUN = mean,
+  # ylim=c(0,2),
+  MPNamesSub = MPNamesSub_user,
+  MPNamesSub_legtext=MPNamesSub_user_legtext,
+  rowLabs=scenNames_key[scenNames_user2]
+)
+if(plot_pdf){dev.off()}
+
+# F/Fmsy
+if(plot_pdf){pdf("Figs/ts_F_Fmsy.pdf")}
+plot_MSE_ts(
+  OMNames= OMNames, scenNames=scenNames_user2,
+  myvarName = "F_FMSY",
+  ylabel = expression(mean~(F/Fmsy)),
+  FUN = mean,
+  # ylim=c(0,2),
+  MPNamesSub = MPNamesSub_user,
+  MPNamesSub_legtext=MPNamesSub_user_legtext,
+  rowLabs=scenNames_key[scenNames_user2]
+)
+if(plot_pdf){dev.off()}
+
+# C/MSY
+if(plot_pdf){pdf("Figs/ts_Catch_MSY.pdf")}
+plot_MSE_ts(
+  OMNames= OMNames, scenNames=scenNames_user2,
+  myvarName = "Catch",
+  myvarDenomExpr = expression(slot(out_i,"RefPoint")$MSY[,,-(1:out_i@nyears)]),
+  ylabel = expression(mean~(Catch/MSY)),
+  FUN = mean,
+  # ylim=c(0,2),
+  MPNamesSub = MPNamesSub_user,
+  MPNamesSub_legtext=MPNamesSub_user_legtext,
+  rowLabs=scenNames_key[scenNames_user2]
+)
+if(plot_pdf){dev.off()}
+
+# 
+# # TAC/MSY
+# plot_MSE_ts(
+#   OMNames= OMNames, scenNames=scenNames_user2,
+#   myvarName = "TAC",
+#   myvarDenomExpr = expression(slot(out_i,"RefPoint")$MSY[,,-(1:out_i@nyears)]),
+#   ylabel = expression(mean~(TAC/MSY)),
+#   FUN = mean,
+#   ylim=c(0,2),
+#   MPNamesSub = MPNamesSub_user,
+#   MPNamesSub_legtext=MPNamesSub_user_legtext,
+#   rowLabs=scenNames_key[scenNames_user2]
+# )
+# 
+# # C/TAC
+# plot_MSE_ts(
+#   OMNames= OMNames, scenNames=scenNames_user2,  
+#   myvarName = "Catch",
+#   myvarDenomExpr = expression(slot(out_i,"TAC")),
+#   ylabel = expression(mean~(C/TAC)),
+#   FUN = mean,
+#   ylim=c(0,1.1),
+#   MPNamesSub = MPNamesSub_user,
+#   MPNamesSub_legtext=MPNamesSub_user_legtext,
+#   rowLabs=scenNames_key[scenNames_user2]
+# )
+# 
+# # MSY
+# plot_MSE_ts(
+# OMNames= OMNames, scenNames=scenNames_user2,
+# myvarName = expression(slot(out_i,"RefPoint")$MSY[,,-(1:out_i@nyears)]),
+# FUN = mean,
+# ylabel= expression(mean~(MSY)),
+# MPNamesSub = MPNamesSub_user,
+# MPNamesSub_legtext=MPNamesSub_user_legtext,
+# rowLabs=scenNames_key[scenNames_user2]
+# )
+# 
+# # SSBMSY
+# plot_MSE_ts(
+# OMNames= OMNames, scenNames=scenNames_user2,
+# myvarName = expression(slot(out_i,"RefPoint")$SSBMSY[,,-(1:out_i@nyears)]),
+# FUN = mean,
+# ylabel= expression(mean~(SSBMSY)),
+# MPNamesSub = MPNamesSub_user,
+# MPNamesSub_legtext=MPNamesSub_user_legtext,
+# rowLabs=scenNames_key[scenNames_user2]
+# )
+# 
+# # FMSY
+# plot_MSE_ts(
+# OMNames= OMNames, scenNames=scenNames_user2,
+# myvarName = expression(slot(out_i,"RefPoint")$FMSY[,,-(1:out_i@nyears)]),
+# FUN = mean,
+# ylabel= expression(mean~(FMSY)),
+# MPNamesSub = MPNamesSub_user,
+# MPNamesSub_legtext=MPNamesSub_user_legtext,
+# rowLabs=scenNames_key[scenNames_user2]
+# )
+# 
+# # UMSY
+# plot_MSE_ts(
+# OMNames= OMNames, scenNames=scenNames_user2,
+# myvarName = expression(F2U(slot(out_i,"RefPoint")$FMSY[,,-(1:out_i@nyears)])),
+# FUN = mean,
+# ylabel= expression(mean~(UMSY)),
+# MPNamesSub = MPNamesSub_user,
+# MPNamesSub_legtext=MPNamesSub_user_legtext,
+# rowLabs=scenNames_key[scenNames_user2]
+# )
+```
+
+```{r plot time series RE,eval=FALSE}
+# # VB
+# plot_MSE_ts(
+# OMNames= OMNames, scenNames=scenNames_user1,
 # myvarName = "VB",
 # ylabel = expression(RE~(mean~(VB))),
 # FUN = mean, MPNamesRef = "SCA_1",
 # MPNamesSub = MPNamesSub_user,
 # MPNamesSub_legtext=MPNamesSub_user_legtext,
-# rowLabs=scenNames_key[scenNames_user]
+# rowLabs=scenNames_key[scenNames_user1]
 # )
 
 # SSB
 plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user,
+  OMNames= OMNames, scenNames=scenNames_user1,
   myvarName = "SSB",
   ylabel = expression(RE~(mean~(SBB))),
   FUN = mean, MPNamesRef = "SCA_1",
   MPNamesSub = MPNamesSub_user,
   MPNamesSub_legtext=MPNamesSub_user_legtext,
-  rowLabs=scenNames_key[scenNames_user],
+  rowLabs=scenNames_key[scenNames_user1],
   ylim=c(-0.5,0.5)
 )
 # 
 # # F
 # plot_MSE_ts(
-# OMNames= OMNames, scenNames=scenNames_user,  
+# OMNames= OMNames, scenNames=scenNames_user1,  
 # myvarName = "FM",
 # ylabel = expression(RE~(mean~(F))),
 # FUN = mean, MPNamesRef = "SCA_1",
 # MPNamesSub = MPNamesSub_user,
 # MPNamesSub_legtext=MPNamesSub_user_legtext,
-# rowLabs=scenNames_key[scenNames_user]
+# rowLabs=scenNames_key[scenNames_user1]
 # )
 # 
 # # TAC
 # plot_MSE_ts(
-# OMNames= OMNames, scenNames=scenNames_user,  
+# OMNames= OMNames, scenNames=scenNames_user1,  
 # myvarName = "TAC",
 # ylabel = expression(RE~(mean~(TAC))),
 # FUN = mean, MPNamesRef = "SCA_1",
 # MPNamesSub = MPNamesSub_user,
 # MPNamesSub_legtext=MPNamesSub_user_legtext,
-# rowLabs=scenNames_key[scenNames_user] 
+# rowLabs=scenNames_key[scenNames_user1] 
 # )
 
 # Catch
 plot_MSE_ts(
-OMNames= OMNames, scenNames=scenNames_user,  
+OMNames= OMNames, scenNames=scenNames_user1,  
 myvarName = "Catch",
 ylabel = expression(RE~(mean~(Catch))),
 FUN = mean, MPNamesRef = "SCA_1",
 MPNamesSub = MPNamesSub_user,
 MPNamesSub_legtext=MPNamesSub_user_legtext,
-rowLabs=scenNames_key[scenNames_user],
+rowLabs=scenNames_key[scenNames_user1],
 ylim=c(-0.5,0.5)
 )
 
 # SSB/SSBmsy
 plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user,
+  OMNames= OMNames, scenNames=scenNames_user1,
   myvarName = "SB_SBMSY",
   ylabel = expression(RE~(mean~(SSB/SSBmsy))),
   FUN = mean, MPNamesRef = "SCA_1",
   MPNamesSub = MPNamesSub_user,
   MPNamesSub_legtext=MPNamesSub_user_legtext,
-  rowLabs=scenNames_key[scenNames_user],
+  rowLabs=scenNames_key[scenNames_user1],
   ylim=c(-0.5,0.5),
   hline=NA
 )
 
 # F/Fmsy
 plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user,
+  OMNames= OMNames, scenNames=scenNames_user1,
   myvarName = "F_FMSY",
   ylabel = expression(RE~(mean~(F/Fmsy))),
   FUN = mean, MPNamesRef = "SCA_1",
   MPNamesSub = MPNamesSub_user,
-  rowLabs=scenNames_key[scenNames_user],
+  rowLabs=scenNames_key[scenNames_user1],
   ylim=c(-1,1.5),
   hline=NA
 )
 
 # C/MSY
 plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user,
+  OMNames= OMNames, scenNames=scenNames_user1,
   myvarName = "Catch",
   myvarDenomExpr = expression(slot(out_i,"RefPoint")$MSY[,,-(1:out_i@nyears)]),
   ylabel = expression(RE~(mean~(Catch/MSY))),
   FUN = mean, MPNamesRef = "SCA_1",
   MPNamesSub = MPNamesSub_user,
   MPNamesSub_legtext=MPNamesSub_user_legtext,
-  rowLabs=scenNames_key[scenNames_user],
+  rowLabs=scenNames_key[scenNames_user1],
   ylim=c(-0.5,0.5)
 )
 
 # 
 # # TAC/MSY
 # plot_MSE_ts(
-#   OMNames= OMNames, scenNames=scenNames_user,
+#   OMNames= OMNames, scenNames=scenNames_user1,
 #   myvarName = "TAC",
 #   myvarDenomExpr = expression(slot(out_i,"RefPoint")$MSY[,,-(1:out_i@nyears)]),
 #   ylabel = expression(RE~(mean~(TAC/MSY))),
@@ -1075,14 +1676,14 @@ plot_MSE_ts(
 #   ylim=c(0,2),
 #   MPNamesSub = MPNamesSub_user,
 #   MPNamesSub_legtext=MPNamesSub_user_legtext,
-#   rowLabs=scenNames_key[scenNames_user],
+#   rowLabs=scenNames_key[scenNames_user1],
 #   ylim=c(-0.5,0.5),
 #   hline=NA
 # )
 # 
 # # C/TAC
 # plot_MSE_ts(
-#   OMNames= OMNames, scenNames=scenNames_user,  
+#   OMNames= OMNames, scenNames=scenNames_user1,  
 #   myvarName = "Catch",
 #   myvarDenomExpr = expression(slot(out_i,"TAC")),
 #   ylabel = expression(RE~(mean~(C/TAC))),
@@ -1090,84 +1691,84 @@ plot_MSE_ts(
 #   ylim=c(0,1.1),
 #   MPNamesSub = MPNamesSub_user,
 #   MPNamesSub_legtext=MPNamesSub_user_legtext,
-#   rowLabs=scenNames_key[scenNames_user],
+#   rowLabs=scenNames_key[scenNames_user1],
 #   ylim=c(-0.5,0.5),
 #   hline=NA
 # )
 # 
 # # MSY
 # plot_MSE_ts(
-#   OMNames= OMNames, scenNames=scenNames_user,
+#   OMNames= OMNames, scenNames=scenNames_user1,
 #   myvarName = expression(slot(out_i,"RefPoint")$MSY[,,-(1:out_i@nyears)]),
 #   FUN = mean, MPNamesRef = "SCA_1",
 #   ylabel= expression(RE~(mean~(MSY))),
 #   MPNamesSub = MPNamesSub_user,
 #   MPNamesSub_legtext=MPNamesSub_user_legtext,
-#   rowLabs=scenNames_key[scenNames_user],
+#   rowLabs=scenNames_key[scenNames_user1],
 #   ylim=c(-0.5,0.5),
 #   hline=NA
 # )
 # 
 # # SSBMSY
 # plot_MSE_ts(
-#   OMNames= OMNames, scenNames=scenNames_user,
+#   OMNames= OMNames, scenNames=scenNames_user1,
 #   myvarName = expression(slot(out_i,"RefPoint")$SSBMSY[,,-(1:out_i@nyears)]),
 #   FUN = mean, MPNamesRef = "SCA_1",
 #   ylabel= expression(RE~(mean~(SSBMSY))),
 #   MPNamesSub = MPNamesSub_user,
 #   MPNamesSub_legtext=MPNamesSub_user_legtext,
-#   rowLabs=scenNames_key[scenNames_user],
+#   rowLabs=scenNames_key[scenNames_user1],
 #   ylim=c(-0.5,0.5),
 #   hline=NA
 # )
 # 
 # # FMSY
 # plot_MSE_ts(
-#   OMNames= OMNames, scenNames=scenNames_user,
+#   OMNames= OMNames, scenNames=scenNames_user1,
 #   myvarName = expression(slot(out_i,"RefPoint")$FMSY[,,-(1:out_i@nyears)]),
 #   FUN = mean, MPNamesRef = "SCA_1",
 #   ylabel= expression(RE~(mean~(FMSY))),
 #   MPNamesSub = MPNamesSub_user,
 #   MPNamesSub_legtext=MPNamesSub_user_legtext,
-#   rowLabs=scenNames_key[scenNames_user],
+#   rowLabs=scenNames_key[scenNames_user1],
 #   ylim=c(-0.5,0.5),
 #   hline=NA
 # )
 # 
 # # UMSY
 # plot_MSE_ts(
-#   OMNames= OMNames, scenNames=scenNames_user,
+#   OMNames= OMNames, scenNames=scenNames_user1,
 #   myvarName = expression(F2U(slot(out_i,"RefPoint")$FMSY[,,-(1:out_i@nyears)])),
 #   FUN = mean, MPNamesRef = "SCA_1",
 #   ylabel= expression(RE~(mean~(UMSY))),
 #   MPNamesSub = MPNamesSub_user,
 #   MPNamesSub_legtext=MPNamesSub_user_legtext,
-#   rowLabs=scenNames_key[scenNames_user],
+#   rowLabs=scenNames_key[scenNames_user1],
 #   ylim=c(-0.5,0.5),
 #   hline=NA
 # )
 ```
 
-```{r plot dot and whiskers, eval=TRUE}
+```{r plot dot and whiskers, eval=FALSE}
 plot_MSE_dw(
-    OMNames= OMNames, scenNames=scenNames_user,
+    OMNames= OMNames, scenNames=scenNames_user1,
     myvarName = "SSB",
     ylabel = expression(cv~(SSB)),
     FUN = cv,
     MPNamesSub = MPNamesAll,
     MPNamesSub_legtext=MPNamesAll_legtext,
-    rowLabs=scenNames_key[scenNames_user]
+    rowLabs=scenNames_key[scenNames_user1]
 )
 
 plot_MSE_dw(
-    OMNames= OMNames, scenNames=scenNames_user,
+    OMNames= OMNames, scenNames=scenNames_user1,
     myvarName = "Catch",
     myvarDenomExpr = expression(slot(out_i,"RefPoint")$MSY[,,-(1:out_i@nyears)]),
     ylabel = expression(geomean~(Catch/MSY)),
     FUN = geomean,
     MPNamesSub = MPNamesAll,
     MPNamesSub_legtext=MPNamesAll_legtext,
-    rowLabs=scenNames_key[scenNames_user],
+    rowLabs=scenNames_key[scenNames_user1],
     ylim = c(0,1)
 )
 
@@ -1175,7 +1776,7 @@ plot_MSE_dw(
 
 ```{r MSEtool tradeoff plots, eval=FALSE}
 # MSEtool Tradeoff plots
-for(outName_i in MSEoutNames_user){
+for(outName_i in MSEoutNames_user1){
 out_i <- get(outName_i)  
 par(oma=c(1,1,2,1))  
 MSEtool::TradePlot(out_i)
@@ -1186,33 +1787,35 @@ MSEtool::TradePlot(out_i)
 
 # Tradeoff plots
 
-```{r manual tradeoff plots, eval=TRUE}
+```{r tradeoffPlot1, eval=FALSE}
+if(plot_pdf){pdf("Figs/tradeoffPlot1.pdf")}
 plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user,
+  OMNames= OMNames, scenNames=scenNames_user1,
   # MPNamesRef = "SCA_1",
   plot_type = "tradeoff",
   PMx = Yield,
   MPNamesSub = MPNamesAll,
   MPNamesSub_legtext=MPNamesAll,
-  rowLabs=scenNames_key[scenNames_user],
+  rowLabs=scenNames_key[scenNames_user1],
   mar=c(0,0,0,0),label_axes="leftbottom",
   xlim=c(0,1.1),ylim=c(0,1.1),
   hline=NA
 )
+if(plot_pdf){dev.off()}
 ```
 
 \clearpage
 
-```{r}
+```{r tradeoffPlot2, eval=FALSE}
 plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user,
+  OMNames= OMNames, scenNames=scenNames_user1,
   # MPNamesRef = "SCA_1",
   plot_type = "tradeoff",
   PMx = PNOF,
   #proyear_phase=20,
   MPNamesSub = MPNamesAll,
   MPNamesSub_legtext=MPNamesAll,
-  rowLabs=scenNames_key[scenNames_user],
+  rowLabs=scenNames_key[scenNames_user1],
   mar=c(0,0,0,0),label_axes="leftbottom",
   xlim=c(0,1.1),ylim=c(0,1.1),
   hline=NA
@@ -1221,23 +1824,25 @@ plot_MSE_ts(
 ```
 \clearpage
 
-```{r}
+```{r tradeoffPlot3, eval=FALSE}
 plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user,
+  OMNames= OMNames, scenNames=scenNames_user1,
   # MPNamesRef = "SCA_1",
   plot_type = "tradeoff",
   PMx = AAVY10,
   #proyear_phase=20,
   MPNamesSub = MPNamesAll,
   MPNamesSub_legtext=MPNamesAll,
-  rowLabs=scenNames_key[scenNames_user],
+  rowLabs=scenNames_key[scenNames_user1],
   mar=c(0,0,0,0),label_axes="leftbottom",
   xlim=c(0,1.1),ylim=c(0,1.1),
   hline=NA
 )
+```
 
+```{r tradeoffPlot4, eval=FALSE}
 plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user,
+  OMNames= OMNames, scenNames=scenNames_user1,
   # MPNamesRef = "SCA_1",
   plot_type = "tradeoff",
   PMx = AAVY10,
@@ -1245,7 +1850,7 @@ plot_MSE_ts(
   #proyear_phase=20,
   MPNamesSub = MPNamesAll,
   MPNamesSub_legtext=MPNamesAll,
-  rowLabs=scenNames_key[scenNames_user],
+  rowLabs=scenNames_key[scenNames_user1],
   mar=c(0,0,0,0),label_axes="leftbottom",
   xlim=c(0,1.1),ylim=c(0,1.1),
   hline=NA
@@ -1253,25 +1858,38 @@ plot_MSE_ts(
 
 ```
 
-
-
 \clearpage
 
 # Phase plots
 
 ```{r phase plots}
+if(plot_pdf){pdf("Figs/phasePlot1.pdf")}
 plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user,
-  MPNamesRef = "SCA_1",
+  OMNames= OMNames, scenNames=scenNames_user1,
   plot_type = "phase",
-  #proyear_phase=20,
+  #proyear_phase=50,
   MPNamesSub = c(MPNamesSub_user),
   MPNamesSub_legtext=c(MPNamesSub_user_legtext),
-  rowLabs=scenNames_key[scenNames_user],
+  rowLabs=scenNames_key[scenNames_user1],
   mar=c(0,0,0,0),label_axes="leftbottom",
-  xlim=c(0,3),ylim=c(0,3),
+  xlim=c(0,5),ylim=c(0,5),
   hline=NA
 )
+if(plot_pdf){dev.off()}
+
+if(plot_pdf){pdf("Figs/phasePlot2.pdf")}
+plot_MSE_ts(
+  OMNames= OMNames, scenNames=scenNames_user2,
+  plot_type = "phase",
+  #proyear_phase=50,
+  MPNamesSub = c(MPNamesSub_user),
+  MPNamesSub_legtext=c(MPNamesSub_user_legtext),
+  rowLabs=scenNames_key[scenNames_user2],
+  mar=c(0,0,0,0),label_axes="leftbottom",
+  xlim=c(0,5),ylim=c(0,5),
+  hline=NA
+)
+if(plot_pdf){dev.off()}
 ```
 
 

@@ -8,12 +8,14 @@ t_list <- Sys.time()
 myseed <- 8675309
 
 source("fn/make_interim_MP_lag.R")
+source("fn/make_projection_MP_lag.R")
 source("fn/SCA_lag.R")
 
 nsim <- 48 #250
 runScenarios <- TRUE # Run scenarios to do MSE or just generate historical data?
 runMSE_args <- list("parallel"=TRUE,"extended"=TRUE,"silent"=FALSE)
-lag_init <- 2 # Number of years between terminal year of assessment and first year of management. May be modified in scenarios
+lag_Assess_init <- 2 # Number of years between terminal year of assessment and first year of management. May be modified in scenarios
+MSY_frac_init <- 0.75 # Fraction of MSY for setting TAC. May be modified in scenarios
 
 OM_name_scen_complete <- NA
 #   local({
@@ -24,29 +26,33 @@ OM_name_scen_complete <- NA
 
 OM_name_all <- gsub(".rds","",list.files("OM"))
 OM_name <- OM_name_all#[!OM_name_all%in%OM_name_complete]
-OM_name <- c("OM_RedPorgy"#, # Runs,
-             ,"OM_BlackSeaBass" # Runs
+OM_name <- c("OM_BlackSeaBass", # Runs
+             "OM_RedPorgy"#, # Runs
              ,"OM_VermilionSnapper" # Runs
              ,"OM_SnowyGrouper" # Runs 2022-1-20 batch 1 for base took only 25 min
              #"OM_RedGrouper", # 2022-1-19 This took 7 hours just to run the base scenario batch 1 so I interrupted it
-             ,"OM_GagGrouper"#, # Runs
+             #,"OM_GagGrouper"#, # Runs
              #,"OM_GrayTriggerfish" # Problems with lightly fished scenario where "More than 5 % of simulations can't get to the specified level of depletion with these Operating Model parameters"
              #"OM_RedSnapper" # Seems to run but takes a long time
 )
 
 # Setup loops
-scenario <- c("base", #"hs", "hd",
-              "nolag",
-              "ucvhi",
-              "ucvlo",
-              "ubias",
-              "lf",
-              "dep",
-              "epiM",
-              "rc",     # Regime change
-              "vtiv",    # Vulnerability time-invariant
-              "perfobs" # Perfect observations
-              #"genfle"   # Generic fleet (kicked out error in RedPorgy "'Len_age' must be array with dimensions: nsim, maxage+1, nyears + proyears.")
+scenario <- c(#"base", #"hs", "hd",
+              #"nolag",
+              #"lf",
+              #"dep",
+              #"ucvhi",
+              #"ucvlo",
+              #"ubias"#,
+              #"epiM",
+              #"rc",     # Regime change
+              #"perfobs", # Perfect observations
+              #"minerr",    # Minimize error and variation in operating model
+              #"minrecdev",  # Minimize recruitment deviations
+              "minrecac", # Minimize recruitment autocorrelation
+              #"tachi",
+              "vtiv"#,    # Vulnerability time-invariant
+              ##"genfle"   # Generic fleet (kicked out error in RedPorgy "'Len_age' must be array with dimensions: nsim, maxage+1, nyears + proyears.")
 )
 
 # Depletion scenario args
@@ -99,7 +105,7 @@ for(OM_name_k in OM_name) { ######### Loop over operating model
   Data_name_k <- gsub("OM","Data",OM_name_k)
 
   myOM_init <- readRDS(paste0("OM/", OM_name_k, ".rds"))
-  myData_init <- readRDS(paste0("Data/", Data_name_k, ".rds"))
+  # myData_init <- readRDS(paste0("Data/", Data_name_k, ".rds"))
 
 
     for(scenario_i in scenario) { ######### Loop over scenario
@@ -111,12 +117,12 @@ for(OM_name_k in OM_name) { ######### Loop over operating model
         myOM <- myOM_init
 
         # Add indices observed in the assessment, their CVs, and their selectivities
-          myData <- new("Data")
-          slot(myData,"AddInd") <- slot(myData_init,"AddInd")
-          slot(myData,"CV_AddInd") <- slot(myData_init,"CV_AddInd")
-          slot(myData,"AddIndV") <- slot(myData_init,"AddIndV")
-          myOM@cpars$Data <- myData
-          AddInd_colnums <- 1:dim(slot(myData_init,"AddInd"))[2]
+          # myData <- new("Data")
+          # slot(myData,"AddInd") <- slot(myData_init,"AddInd")
+          # slot(myData,"CV_AddInd") <- slot(myData_init,"CV_AddInd")
+          # slot(myData,"AddIndV") <- slot(myData_init,"AddIndV")1
+          # myOM@cpars$Data <- myData
+          # AddInd_colnums <- 1:dim(slot(myData_init,"AddInd"))[2]
 
         ## SCENARIOS
 
@@ -248,17 +254,56 @@ for(OM_name_k in OM_name) { ######### Loop over operating model
           myOM <- Replace(myOM, Generic_Fleet)
         }
 
+        if(scenario_i=="minerr"){
+          # Minimize observation error
+          myOM <- Replace(myOM, Perfect_Info)
+          ## Minimize other sources of error (but don't reduce to zero)
+          myOM@cpars <- myOM@cpars[names(myOM@cpars)!="Perr_y"]
+          myOM@Perr <- c(0,0.05)
+          myOM@cpars$Data@CV_AddInd[!is.na(myOM@cpars$Data@CV_AddInd)] <- 0.05
+          myOM@cpars$LenCV[!is.na(myOM@cpars$LenCV)] <- 0.05
+
+          # Make vulnerability constant (during historic and projection years)
+          myOM@cpars$V <- local({
+            V <- myOM@cpars$V
+            V2 <- aperm(V, perm = c(2, 1, 3))
+            Vc <- V[1,,myOM@nyears+1]
+            V3 <- array(Vc,dim=dim(V2))
+            aperm(V3, perm = c(2, 1, 3))
+          })
+        }
+
+        if(scenario_i=="minrecdev"){
+          ## Minimize recruitment deviation
+          myOM@cpars <- myOM@cpars[names(myOM@cpars)!="Perr_y"]
+          myOM@Perr <- c(0,0.05)
+        }
+
+        if(scenario_i=="minrecac"){
+        # Minimize recruitment deviations
+          myOM@AC <- c(0,0.05)
+        }
+
+
+
+        if(scenario_i=="tachi"){
+        # Set TAC to high value
+          MSY_frac <- 1.25
+        }else{
+          MSY_frac <- MSY_frac_init
+        }
+
         # No lag between stock assessment and management
         if(scenario_i=="nolag"){
-          lag <- 0
+          lag_Assess <- 0
+          source('fn/iMP_nolag.R') # Define MPs
+          #source('fn/iMP.R') # This should work too
         }else{
-          lag <- lag_init
+          lag_Assess <- lag_Assess_init
+          source('fn/iMP.R') # Define MPs
         }
 
         myOM <- SubCpars(myOM, sims = 1:nsim) # Limit number of simulations
-
-        # Define MPs (may vary dependent on settings in scenarios above)
-        source('fn/iMP.R')
 
         # Save OM to object
         OM_name_ki <- paste0(OM_name_k, "_", scenario_i)
@@ -268,11 +313,11 @@ for(OM_name_k in OM_name) { ######### Loop over operating model
                 file=paste0("OM_modified/",paste0(OM_name_ki, ".rds")))
 
         ######## All MPs
-        myOM@interval <- c(1, 1, 1, 1,
-                           1, 5, 10,
-                           1, 1,
-                           1, 1
-                           )
+        myOM@interval <- c(1, 1, 1, 1, 1,
+                           1,5,10,
+                           1,1,
+                           1,1,
+                           1,1)
         #set.seed(myseed)
         # myHist_init <- Simulate(myOM_init)
         set.seed(myseed)
@@ -284,18 +329,13 @@ for(OM_name_k in OM_name) { ######### Loop over operating model
 
         # Run all MPs together so that the Hist objects are always identical
         set.seed(myseed)
-        sfExport(list = c("SCA_lag"#,
-                          # "SCA_1","SCA_5","SCA_10",
-                          # "iMP_avg_5", "iMP_avg_10",
-                          # "iMP_buffer_5","iMP_buffer_10"
-                          )
-        )
+        sfExport(list = "SCA_lag")
         MSE_batch_1 <- runMSE(myOM,
-                              MPs = c("AvC", "DCAC", "DBSRA", "SPMSY", # simple MPs
-                                      "SCA_1","SCA_5",
-                                      "SCA_10",       # assessment only MPs
-                                      "iMP_avg_5", "iMP_avg_10",       # interim average MPs
-                                      "iMP_buffer_5","iMP_buffer_10"   # interim buffered MPs
+                              MPs = c("AvC", "CC1", "DCAC", "DBSRA", "SPMSY" # simple MPs
+                                      ,"SCA_1","SCA_5","SCA_10"       # assessment only MPs
+                                      ,"iMP_avg_5", "iMP_avg_10"       # interim average MPs
+                                      ,"iMP_buffer_5","iMP_buffer_10"   # interim buffered MPs
+                                      ,"pMP_5","pMP_10"                # projection MPs
                                       ),
                               parallel = runMSE_args$parallel, extended=runMSE_args$extended, silent=runMSE_args$silent)
 

@@ -1,6 +1,3 @@
-
-
-
 make_interim_MP_lag <- function (.Assess = "SCA",
                                  .HCR = "HCR_MSY",
                                  AddInd = "VB",
@@ -52,7 +49,7 @@ make_interim_MP_lag <- function (.Assess = "SCA",
   MP_body <- bquote({
     dependencies <- .(SAMtool:::get_dependencies(Assess_char, dots))
     ny <- length(Data@Year)      # Number of years in available Data object
-    ny_Assess <- ny- .(lag)           # Number of year of Data available for assessment
+    #ny_Assess <- ny- .(lag)           # Number of year of Data available for assessment
     Current_Yr <- Data@Year[ny]  # Current year
     first_assess_yr <- Current_Yr == Data@LHYear # Is the current year the last year of available data?
     run_assessment <- first_assess_yr || Current_Yr == Data@Misc[[x]]$interim$next_assess_yr # Should the assessment be run?

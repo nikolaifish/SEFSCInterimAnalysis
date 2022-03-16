@@ -22,6 +22,7 @@ library(rfishbase)
 library(stringr)
  
 library(bamExtras) # Nikolai's package
+library(bamMSE) # Nikolai's package
 
 ```
 
@@ -59,6 +60,9 @@ Vconstant <- FALSE
 # Limit maximum value of proportion mature of first age class (usually age-1)
 # Some models fail when maturity of first age class is too high (e.g. >0.5)
 Mat_age1_max <- 0.49
+
+# Indicate if operating models should only include indices that were available in the final year of the assessment. logical
+AddInd_endyr_only <- TRUE
 
 # # par_cv: When generating parameters for Stock objects, mean values are observed from rdat.
 # #         Coefficient of variation (CV) values are set to compute the standard deviation of
@@ -104,6 +108,20 @@ bam_rdat_sub <- paste("rdat",bam_common_name_sub,sep="_")
 OMNames <- gsub("rdat_","OM_",bam_rdat_sub)
 ```
 
+```{r}
+# create completely empty Data object
+Data_empty <- local({
+  dat <- new("Data")
+  for(slotName_i in slotNames(dat)){
+    slot_i <- slot(dat,slotName_i)
+    if(length(slot_i)>0&is.numeric(slot_i)){
+      slot(dat,slotName_i) <- slot_i*NA
+    }
+  }
+  dat
+})
+```
+
 
 ```{r build Data, eval=TRUE}
 for(rdat_name_i in bam_rdat_sub){
@@ -127,8 +145,8 @@ for(rdat_name_i in bam_rdat_sub){
 ```
 
 
-```{r build OM VPA2OM, eval=TRUE}
-list_Nage_F0_pr_sc <- list() # List for storing values of Nage_F0_pr_sc
+```{r build OM Assess2OM, eval=TRUE}
+list_Nage_F0_pr_sc <- list() # List for storing values of Nage_F0_pr_sc (for plotting hist compared to BAM)
 vec_to_mat <- function(vec){
   matrix(vec,nrow=dim(naa)[2],ncol=dim(naa)[3],byrow=FALSE,
                     dimnames=dimnames(naa)[2:3])
@@ -143,6 +161,10 @@ mat_to_array <- function(mat,nsim){
 for(rdat_name_i in bam_rdat_sub){
   rdat_i <- standardize_rdat(get(rdat_name_i))
   Name_i <- gsub("rdat_","",rdat_name_i)
+  DataName_i <- gsub("rdat_","Data_",rdat_name_i)
+  Data_i <- get(DataName_i)
+  Obs_i <- rdat_to_Obs(rdat_i)
+  
   herm_i <- bamStockMisc[Name_i, "herm"]
   OM_name_i <- gsub("rdat","OM",rdat_name_i)
   a.series_i <- rdat_i$a.series
@@ -179,7 +201,7 @@ if(min(ageinit_i)>0){
   age_i <- a.series_i$age
   
   # NOTE: this will have no effect in ageinitmin_i=0 
-  Nage_F0_pr <- expDecay(age=age_i,Z=a.series_i$M,N0=1)                  # Unfished N-at-age per recruit
+  Nage_F0_pr <- exp_decay(age=age_i,Z=a.series_i$M,N0=1)                  # Unfished N-at-age per recruit
   Nage_F0_pr_sc <- (Nage_F0_pr/Nage_F0_pr[[paste(ageinitmin_i)]])[["0"]] # Scaling factor for computing unfished numbers at age-0
   R0_i <- R0_i*Nage_F0_pr_sc                                             # Scaled value of R0
   
@@ -228,14 +250,14 @@ if(min(ageinit_i)>0){
             ObsUser <- rdat_to_Obs(
                             rdat=my_rdat,
                             Obs=ObsUser,
-                            Ind_abb=c("sCT","sTV","sVD"),
-                            CAA_abb=c("sCT","sTV","sVD"),
-                            CAL_abb=c("sCT","sTV","sVD")
+                            Ind_abb=c("sTV", "sCT", "sVD", "sBL", "sVL", "sBT", "sFT"),
+                            CAA_abb=c("sTV", "sCT", "sVD", "sBL", "sVL", "sBT", "sFT"),
+                            CAL_abb=c("sTV", "sCT", "sVD", "sBL", "sVL", "sBT", "sFT")
                             )
           }
         }
   
- OM_i <- VPA2OM(Name=Name_i,
+ OM_i <- Assess2OM(Name=Name_i,
                 proyears = proyears,
                 interval = interval,
                 CurrentYr = CurrentYr_i,
@@ -270,7 +292,10 @@ if(min(ageinit_i)>0){
    })
  }
  
+ 
+ 
  list_Nage_F0_pr_sc[[Name_i]] <- Nage_F0_pr_sc
+ 
  
  # Save rdat modifications
  rdatmods_name_i <- gsub("rdat","rdatmods",rdat_name_i)
@@ -288,7 +313,32 @@ if(min(ageinit_i)>0){
           
           )
         )
+
+ # Add indices observed in the assessment, their CVs, and their selectivities
+ AddInd <- slot(Data_i,"AddInd")
+ CV_AddInd <- slot(Data_i,"CV_AddInd")
+ AddIndV <- slot(Data_i,"AddIndV")
+ AddIndType <- slot(Data_i,"AddIndType")
+ AddIunits <- slot(Data_i,"AddIunits")
  
+ if(AddInd_endyr_only){
+   # Identify which indices are available (not NA) in the terminal year of the assessment
+   AddInd_endyr_ix <- which(!is.na(AddInd[1,,dim(AddInd)[3]])) # Just uses the first sim!!
+   AddInd <- AddInd[,AddInd_endyr_ix,,drop=FALSE]
+   CV_AddInd <- CV_AddInd[,AddInd_endyr_ix,,drop=FALSE]
+   AddIndV <- AddIndV[,AddInd_endyr_ix,,drop=FALSE]
+   AddIndType <- AddIndType[AddInd_endyr_ix]
+   AddIunits <- AddIunits[AddInd_endyr_ix]
+ }
+ 
+ Data2_i <- Data_empty
+ slot(Data2_i,"AddInd") <- AddInd
+ slot(Data2_i,"CV_AddInd") <- CV_AddInd
+ slot(Data2_i,"AddIndV") <- AddIndV
+ slot(Data2_i,"AddIndType") <- AddIndType
+ slot(Data2_i,"AddIunits") <- AddIunits
+ 
+ OM_i@cpars$Data <- Data2_i
  
  assign(OM_name_i,OM_i)
 }  
@@ -340,7 +390,7 @@ for(OM_name_i in OM_name_bam){
 
 ```{r plot Hist with bam  results, eval=TRUE}
 if(plot_Hist){
-pdf("HistBam.pdf")
+ pdf("HistBam.pdf")
 CIpct = 95
 
 for(i in bam_common_name_sub){
