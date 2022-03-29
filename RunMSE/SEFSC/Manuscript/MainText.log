@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2022.3.1)  11 MAR 2022 12:19
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2022.3.1)  28 MAR 2022 13:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -70,7 +70,15 @@ File: color.cfg 2016/01/02 v1.6 sample color configuration
 Package color Info: Driver file: pdftex.def on input line 149.
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/graphics-def/pdftex.def
 File: pdftex.def 2020/10/05 v1.2a Graphics/color driver for pdftex
-)) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty
+)) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/enumitem/enumitem.sty
+Package: enumitem 2019/06/20 v3.9 Customized lists
+\labelindent=\skip49
+\enit@outerparindent=\dimen160
+\enit@toks=\toks17
+\enit@inbox=\box50
+\enit@count@id=\count199
+\enitdp@description=\count266
+) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty
 Package: fontenc 2021/04/29 v2.0v Standard LaTeX package
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/geometry/geometry.sty
 Package: geometry 2020/01/02 v5.9 Page Geometry
@@ -79,18 +87,18 @@ Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/generic/iftex/iftex.sty
 Package: iftex 2022/02/03 v1.0f TeX engine tests
 ))
-\Gm@cnth=\count199
-\Gm@cntv=\count266
-\c@Gm@tempcnt=\count267
-\Gm@bindingoffset=\dimen160
-\Gm@wd@mp=\dimen161
-\Gm@odd@mp=\dimen162
-\Gm@even@mp=\dimen163
-\Gm@layoutwidth=\dimen164
-\Gm@layoutheight=\dimen165
-\Gm@layouthoffset=\dimen166
-\Gm@layoutvoffset=\dimen167
-\Gm@dimlist=\toks17
+\Gm@cnth=\count267
+\Gm@cntv=\count268
+\c@Gm@tempcnt=\count269
+\Gm@bindingoffset=\dimen161
+\Gm@wd@mp=\dimen162
+\Gm@odd@mp=\dimen163
+\Gm@even@mp=\dimen164
+\Gm@layoutwidth=\dimen165
+\Gm@layoutheight=\dimen166
+\Gm@layouthoffset=\dimen167
+\Gm@layoutvoffset=\dimen168
+\Gm@dimlist=\toks18
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/graphics/graphics.sty
@@ -102,64 +110,64 @@ File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
 Package graphics Info: Driver file: pdftex.def on input line 107.
 )
-\Gin@req@height=\dimen168
-\Gin@req@width=\dimen169
+\Gin@req@height=\dimen169
+\Gin@req@width=\dimen170
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/lineno/lineno.sty
 Package: lineno 2005/11/02 line numbers on paragraphs v4.41
-\linenopenalty=\count268
-\output=\toks18
-\linenoprevgraf=\count269
-\linenumbersep=\dimen170
-\linenumberwidth=\dimen171
-\c@linenumber=\count270
-\c@pagewiselinenumber=\count271
-\c@LN@truepage=\count272
-\c@internallinenumber=\count273
-\c@internallinenumbers=\count274
-\quotelinenumbersep=\dimen172
-\bframerule=\dimen173
-\bframesep=\dimen174
-\bframebox=\box50
+\linenopenalty=\count270
+\output=\toks19
+\linenoprevgraf=\count271
+\linenumbersep=\dimen171
+\linenumberwidth=\dimen172
+\c@linenumber=\count272
+\c@pagewiselinenumber=\count273
+\c@LN@truepage=\count274
+\c@internallinenumber=\count275
+\c@internallinenumbers=\count276
+\quotelinenumbersep=\dimen173
+\bframerule=\dimen174
+\bframesep=\dimen175
+\bframebox=\box51
 LaTeX Info: Redefining \\ on input line 3056.
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/tools/longtable.sty
 Package: longtable 2021-09-01 v4.17 Multi-page Table package (DPC)
-\LTleft=\skip49
-\LTright=\skip50
-\LTpre=\skip51
-\LTpost=\skip52
-\LTchunksize=\count275
-\LTcapwidth=\dimen175
-\LT@head=\box51
-\LT@firsthead=\box52
-\LT@foot=\box53
-\LT@lastfoot=\box54
-\LT@gbox=\box55
-\LT@cols=\count276
-\LT@rows=\count277
-\c@LT@tables=\count278
-\c@LT@chunks=\count279
-\LT@p@ftn=\toks19
+\LTleft=\skip50
+\LTright=\skip51
+\LTpre=\skip52
+\LTpost=\skip53
+\LTchunksize=\count277
+\LTcapwidth=\dimen176
+\LT@head=\box52
+\LT@firsthead=\box53
+\LT@foot=\box54
+\LT@lastfoot=\box55
+\LT@gbox=\box56
+\LT@cols=\count278
+\LT@rows=\count279
+\c@LT@tables=\count280
+\c@LT@chunks=\count281
+\LT@p@ftn=\toks20
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/microtype/microtype.sty
 Package: microtype 2022/02/22 v3.0c Micro-typographical refinements (RS)
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/etoolbox/etoolbox.sty
 Package: etoolbox 2020/10/05 v2.5k e-TeX tools for LaTeX (JAW)
-\etb@tempcnta=\count280
+\etb@tempcnta=\count282
 )
-\MT@toks=\toks20
-\MT@tempbox=\box56
-\MT@count=\count281
+\MT@toks=\toks21
+\MT@tempbox=\box57
+\MT@count=\count283
 LaTeX Info: Redefining \noprotrusionifhmode on input line 1027.
 LaTeX Info: Redefining \leftprotrusion on input line 1028.
 LaTeX Info: Redefining \rightprotrusion on input line 1036.
 LaTeX Info: Redefining \textls on input line 1200.
-\MT@outer@kern=\dimen176
+\MT@outer@kern=\dimen177
 LaTeX Info: Redefining \textmicrotypecontext on input line 1786.
-\MT@listname@count=\count282
+\MT@listname@count=\count284
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/microtype/microtype-pdftex.def
 File: microtype-pdftex.def 2022/02/22 v3.0c Definitions specific to pdftex (RS)
 LaTeX Info: Redefining \lsstyle on input line 897.
 LaTeX Info: Redefining \lslig on input line 897.
-\MT@outer@space=\skip53
+\MT@outer@space=\skip54
 )
 Package microtype Info: Loading configuration file microtype.cfg.
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/microtype/microtype.cfg
@@ -189,62 +197,62 @@ Already applied: [0000/00/00] Usage of raw or classic option list on input line 
 Package: setspace 2011/12/19 v6.7a set line spacing
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/siunitx/siunitx.sty
 Package: siunitx 2022-02-15 v3.0.49 A comprehensive (SI) units package
-\l__siunitx_angle_tmp_dim=\dimen177
-\l__siunitx_angle_marker_box=\box57
-\l__siunitx_angle_unit_box=\box58
-\l__siunitx_compound_count_int=\count283
-\l__siunitx_number_exponent_fixed_int=\count284
-\l__siunitx_number_min_decimal_int=\count285
-\l__siunitx_number_min_integer_int=\count286
-\l__siunitx_number_round_precision_int=\count287
-\l__siunitx_number_group_minimum_int=\count288
+\l__siunitx_angle_tmp_dim=\dimen178
+\l__siunitx_angle_marker_box=\box58
+\l__siunitx_angle_unit_box=\box59
+\l__siunitx_compound_count_int=\count285
+\l__siunitx_number_exponent_fixed_int=\count286
+\l__siunitx_number_min_decimal_int=\count287
+\l__siunitx_number_min_integer_int=\count288
+\l__siunitx_number_round_precision_int=\count289
+\l__siunitx_number_group_minimum_int=\count290
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/amsmath/amstext.sty
 Package: amstext 2021/08/26 v2.01 AMS text
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0 generic functions
-\@emptytoks=\toks21
-\ex@=\dimen178
+\@emptytoks=\toks22
+\ex@=\dimen179
 ))
-\l__siunitx_table_tmp_box=\box59
-\l__siunitx_table_tmp_dim=\dimen179
-\l__siunitx_table_column_width_dim=\dimen180
-\l__siunitx_table_integer_box=\box60
-\l__siunitx_table_decimal_box=\box61
-\l__siunitx_table_before_box=\box62
-\l__siunitx_table_after_box=\box63
-\l__siunitx_table_before_dim=\dimen181
-\l__siunitx_table_carry_dim=\dimen182
-\l__siunitx_unit_tmp_int=\count289
-\l__siunitx_unit_position_int=\count290
-\l__siunitx_unit_total_int=\count291
+\l__siunitx_table_tmp_box=\box60
+\l__siunitx_table_tmp_dim=\dimen180
+\l__siunitx_table_column_width_dim=\dimen181
+\l__siunitx_table_integer_box=\box61
+\l__siunitx_table_decimal_box=\box62
+\l__siunitx_table_before_box=\box63
+\l__siunitx_table_after_box=\box64
+\l__siunitx_table_before_dim=\dimen182
+\l__siunitx_table_carry_dim=\dimen183
+\l__siunitx_unit_tmp_int=\count291
+\l__siunitx_unit_position_int=\count292
+\l__siunitx_unit_total_int=\count293
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/l3packages/l3keys2e/l3keys2e.sty (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/l3kernel/expl3.sty
 Package: expl3 2022-02-24 L3 programming layer (loader) 
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2022-02-07 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count292
-\l__pdf_internal_box=\box64
+\l__color_backend_stack_int=\count294
+\l__pdf_internal_box=\box65
 ))
 Package: l3keys2e 2022-01-12 LaTeX2e option processing using LaTeX3 keys
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/tools/array.sty
 Package: array 2021/10/04 v2.5f Tabular extension package (FMi)
-\col@sep=\dimen183
-\ar@mcellbox=\box65
-\extrarowheight=\dimen184
-\NC@list=\toks22
-\extratabsurround=\skip54
-\backup@length=\skip55
-\ar@cellbox=\box66
+\col@sep=\dimen184
+\ar@mcellbox=\box66
+\extrarowheight=\dimen185
+\NC@list=\toks23
+\extratabsurround=\skip55
+\backup@length=\skip56
+\ar@cellbox=\box67
 )) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/titlesec/titlesec.sty
 Package: titlesec 2021/07/05 v2.14 Sectioning titles
-\ttl@box=\box67
-\beforetitleunit=\skip56
-\aftertitleunit=\skip57
-\ttl@plus=\dimen185
-\ttl@minus=\dimen186
-\ttl@toksa=\toks23
-\titlewidth=\dimen187
-\titlewidthlast=\dimen188
-\titlewidthfirst=\dimen189
+\ttl@box=\box68
+\beforetitleunit=\skip57
+\aftertitleunit=\skip58
+\ttl@plus=\dimen186
+\ttl@minus=\dimen187
+\ttl@toksa=\toks24
+\titlewidth=\dimen188
+\titlewidthlast=\dimen189
+\titlewidthfirst=\dimen190
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/xcolor/xcolor.sty
 Package: xcolor 2021/10/31 v2.13 LaTeX color extensions (UK)
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/graphics-cfg/color.cfg
@@ -290,9 +298,9 @@ Package: auxhook 2019-12-17 v1.6 Hooks for auxiliary files (HO)
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/kvoptions/kvoptions.sty
 Package: kvoptions 2020-10-07 v3.14 Key value format for package options (HO)
 )
-\@linkdim=\dimen190
-\Hy@linkcounter=\count293
-\Hy@pagecounter=\count294
+\@linkdim=\dimen191
+\Hy@linkcounter=\count295
+\Hy@pagecounter=\count296
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/hyperref/pd1enc.def
 File: pd1enc.def 2022-02-21 v7.00n Hyperref: PDFDocEncoding definition (HO)
 Now handling font encoding PD1 ...
@@ -302,7 +310,7 @@ Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/generic/etexcmds/etexcmds.sty
 Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
 )
-\Hy@SavedSpaceFactor=\count295
+\Hy@SavedSpaceFactor=\count297
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/hyperref/puenc.def
 File: puenc.def 2022-02-21 v7.00n Hyperref: PDF Unicode definition (HO)
 Now handling font encoding PU ...
@@ -315,21 +323,21 @@ Package hyperref Info: Plain pages OFF on input line 4152.
 Package hyperref Info: Backreferencing OFF on input line 4157.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
 Package hyperref Info: Bookmarks ON on input line 4390.
-\c@Hy@tempcnt=\count296
+\c@Hy@tempcnt=\count298
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/url/url.sty
 \Urlmuskip=\muskip16
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
 LaTeX Info: Redefining \url on input line 4749.
-\XeTeXLinkMargin=\dimen191
+\XeTeXLinkMargin=\dimen192
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/generic/bitset/bitset.sty
 Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty
 Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO)
 ))
-\Fld@menulength=\count297
-\Field@Width=\dimen192
-\Fld@charsize=\dimen193
+\Fld@menulength=\count299
+\Field@Width=\dimen193
+\Fld@charsize=\dimen194
 Package hyperref Info: Hyper figures OFF on input line 6027.
 Package hyperref Info: Link nesting OFF on input line 6032.
 Package hyperref Info: Hyper index ON on input line 6035.
@@ -343,9 +351,9 @@ LaTeX Info: Redefining \pageref on input line 6101.
 Package: atbegshi-ltx 2021/01/10 v1.0c Emulation of the original atbegshi
 package with kernel methods
 )
-\Hy@abspage=\count298
-\c@Item=\count299
-\c@Hfootnote=\count300
+\Hy@abspage=\count300
+\c@Item=\count301
+\c@Hfootnote=\count302
 )
 Package hyperref Info: Driver (autodetected): hpdftex.
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/hyperref/hpdftex.def
@@ -354,8 +362,8 @@ File: hpdftex.def 2022-02-21 v7.00n Hyperref driver for pdfTeX
 Package: atveryend-ltx 2020/08/19 v1.0a Emulation of the original atveryend package
 with kernel methods
 )
-\Fld@listcount=\count301
-\c@bookmark@seq@number=\count302
+\Fld@listcount=\count303
+\c@bookmark@seq@number=\count304
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty
 Package: rerunfilecheck 2019/12/05 v1.9 Rerun checks for auxiliary files (HO)
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty
@@ -363,15 +371,15 @@ Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
 )
 Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 286.
 )
-\Hy@SectionHShift=\skip58
+\Hy@SectionHShift=\skip59
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/natbib/natbib.sty
 Package: natbib 2010/09/13 8.31b (PWD, AO)
-\bibhang=\skip59
-\bibsep=\skip60
+\bibhang=\skip60
+\bibsep=\skip61
 LaTeX Info: Redefining \cite on input line 694.
-\c@NAT@ctr=\count303
+\c@NAT@ctr=\count305
 )
-Package caption Info: Option `figurename' requires the `newfloat' package on input line 44.
+Package caption Info: Option `figurename' requires the `newfloat' package on input line 46.
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/newfloat/newfloat.sty
 Package: newfloat 2019/09/02 v1.1l Defining new floating environments (AR)
 ) (c:/Program Files/R/R-4.1.1/share/texmf/tex/latex/Sweave.sty
@@ -380,11 +388,11 @@ Package: Sweave
 Package: ifthen 2020/11/24 v1.1c Standard LaTeX ifthen package (DPC)
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/fancyvrb/fancyvrb.sty
 Package: fancyvrb 2021/12/21 4.1b verbatim text (tvz,hv)
-\FV@CodeLineNo=\count304
+\FV@CodeLineNo=\count306
 \FV@InFile=\read2
-\FV@TabBox=\box68
-\c@FancyVerbLine=\count305
-\FV@StepNumber=\count306
+\FV@TabBox=\box69
+\c@FancyVerbLine=\count307
+\FV@StepNumber=\count308
 \FV@OutFile=\write3
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/base/textcomp.sty
 Package: textcomp 2020/02/02 v2.0n Standard LaTeX package
@@ -395,34 +403,30 @@ Package: ae 2001/02/12 1.3 Almost European Computer Modern
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty
 Package: fontenc 2021/04/29 v2.0v Standard LaTeX package
 )))
-LaTeX Font Info:    Trying to load font information for T1+aer on input line 56.
+LaTeX Font Info:    Trying to load font information for T1+aer on input line 58.
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/ae/t1aer.fd
 File: t1aer.fd 1997/11/16 Font definitions for T1/aer.
-) (./MainText.aux
-
-LaTeX Warning: Label `fig:phasePlot1' multiply defined.
-
-)
+) (./MainText.aux)
 \openout1 = `MainText.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 56.
-LaTeX Font Info:    ... okay on input line 56.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 58.
+LaTeX Font Info:    ... okay on input line 58.
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: hyperref package is loaded.
 Package caption Info: longtable package is loaded.
@@ -470,25 +474,25 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-LaTeX Info: Redefining \microtypecontext on input line 56.
-Package microtype Info: Applying patch `item' on input line 56.
-Package microtype Info: Applying patch `toc' on input line 56.
-Package microtype Info: Applying patch `eqnum' on input line 56.
-Package microtype Info: Applying patch `footnote' on input line 56.
+LaTeX Info: Redefining \microtypecontext on input line 58.
+Package microtype Info: Applying patch `item' on input line 58.
+Package microtype Info: Applying patch `toc' on input line 58.
+Package microtype Info: Applying patch `eqnum' on input line 58.
+Package microtype Info: Applying patch `footnote' on input line 58.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
 Package microtype Info: Automatic font expansion enabled (level 2),
 (microtype)             stretch: 20, shrink: 20, step: 1, non-selected.
 Package microtype Info: Using default expansion set `alltext-nott'.
-LaTeX Info: Redefining \showhyphens on input line 56.
+LaTeX Info: Redefining \showhyphens on input line 58.
 Package microtype Info: No adjustment of tracking.
 Package microtype Info: No adjustment of interword spacing.
 Package microtype Info: No adjustment of character kerning.
 (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/microtype/mt-cmr.cfg
 File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman (RS)
 )
-Package hyperref Info: Link coloring OFF on input line 56.
+Package hyperref Info: Link coloring OFF on input line 58.
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2021-04-02 v2.47 Cross-referencing by name of section
  (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/refcount/refcount.sty
@@ -496,64 +500,112 @@ Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
 ) (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
-\c@section@level=\count307
+\c@section@level=\count309
 )
-LaTeX Info: Redefining \ref on input line 56.
-LaTeX Info: Redefining \pageref on input line 56.
-LaTeX Info: Redefining \nameref on input line 56.
+LaTeX Info: Redefining \ref on input line 58.
+LaTeX Info: Redefining \pageref on input line 58.
+LaTeX Info: Redefining \nameref on input line 58.
  (./MainText.out) (./MainText.out)
 \@outlinefile=\write4
 \openout4 = `MainText.out'.
 
  (./MainText-concordance.tex)
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <14.4> on input line 72.
+(Font)              <14.4> on input line 74.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 72.
+(Font)              <7> on input line 74.
+LaTeX Font Info:    Trying to load font information for T1+aett on input line 91.
+ (c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/ae/t1aett.fd
+File: t1aett.fd 1997/11/16 Font definitions for T1/aett.
+)
+Package microtype Info: Loading generic protrusion settings for font family
+(microtype)             `aett' (encoding: T1).
+(microtype)             For optimal results, create family-specific settings.
+(microtype)             See the microtype manual for details.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 91.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 91.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 91.
  [1
 
-{c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-LaTeX Font Info:    Trying to load font information for TS1+aer on input line 100.
+{c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2] [3] [4] [5]
+LaTeX Font Info:    Trying to load font information for TS1+aer on input line 175.
  (c:/Program Files/R/R-4.1.1/share/texmf/tex/latex/ts1aer.fd
 File: ts1aer.fd 
 )
 LaTeX Font Info:    Font shape `TS1/aer/m/n' in size <12> not available
-(Font)              Font shape `TS1/cmr/m/n' tried instead on input line 100.
- [2]
+(Font)              Font shape `TS1/cmr/m/n' tried instead on input line 175.
+ [6]
 No file MainText.bbl.
-[3
+[7
 
-] [4]
-<../Figs/AddInd.pdf, id=33, 505.89pt x 505.89pt>
+] [8]
+<../Figs/AddInd.pdf, id=94, 505.89pt x 505.89pt>
 File: ../Figs/AddInd.pdf Graphic file (type pdf)
 <use ../Figs/AddInd.pdf>
-Package pdftex.def Info: ../Figs/AddInd.pdf  used on input line 136.
+Package pdftex.def Info: ../Figs/AddInd.pdf  used on input line 212.
 (pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
-<../Figs/phasePlot1.pdf, id=34, 505.89pt x 505.89pt>
+<../Figs/tsSSBSSBmsy1.pdf, id=95, 505.89pt x 505.89pt>
+File: ../Figs/tsSSBSSBmsy1.pdf Graphic file (type pdf)
+<use ../Figs/tsSSBSSBmsy1.pdf>
+Package pdftex.def Info: ../Figs/tsSSBSSBmsy1.pdf  used on input line 223.
+(pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <10.95> on input line 226.
+<../Figs/tsFFmsy1.pdf, id=96, 505.89pt x 505.89pt>
+File: ../Figs/tsFFmsy1.pdf Graphic file (type pdf)
+<use ../Figs/tsFFmsy1.pdf>
+Package pdftex.def Info: ../Figs/tsFFmsy1.pdf  used on input line 234.
+(pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
+<../Figs/tsCatch1.pdf, id=97, 505.89pt x 505.89pt>
+File: ../Figs/tsCatch1.pdf Graphic file (type pdf)
+<use ../Figs/tsCatch1.pdf>
+Package pdftex.def Info: ../Figs/tsCatch1.pdf  used on input line 245.
+(pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
+<../Figs/boxplotSBSBMSY1.pdf, id=98, 505.89pt x 505.89pt>
+File: ../Figs/boxplotSBSBMSY1.pdf Graphic file (type pdf)
+<use ../Figs/boxplotSBSBMSY1.pdf>
+Package pdftex.def Info: ../Figs/boxplotSBSBMSY1.pdf  used on input line 256.
+(pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
+<../Figs/boxplotFFMSY1.pdf, id=99, 505.89pt x 505.89pt>
+File: ../Figs/boxplotFFMSY1.pdf Graphic file (type pdf)
+<use ../Figs/boxplotFFMSY1.pdf>
+Package pdftex.def Info: ../Figs/boxplotFFMSY1.pdf  used on input line 267.
+(pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
+<../Figs/boxplotCatchTotal1.pdf, id=100, 505.89pt x 505.89pt>
+File: ../Figs/boxplotCatchTotal1.pdf Graphic file (type pdf)
+<use ../Figs/boxplotCatchTotal1.pdf>
+Package pdftex.def Info: ../Figs/boxplotCatchTotal1.pdf  used on input line 278.
+(pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
+<../Figs/boxplotAAVY1.pdf, id=101, 505.89pt x 505.89pt>
+File: ../Figs/boxplotAAVY1.pdf Graphic file (type pdf)
+<use ../Figs/boxplotAAVY1.pdf>
+Package pdftex.def Info: ../Figs/boxplotAAVY1.pdf  used on input line 289.
+(pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
+<../Figs/phasePlot1.pdf, id=102, 505.89pt x 505.89pt>
 File: ../Figs/phasePlot1.pdf Graphic file (type pdf)
 <use ../Figs/phasePlot1.pdf>
-Package pdftex.def Info: ../Figs/phasePlot1.pdf  used on input line 147.
+Package pdftex.def Info: ../Figs/phasePlot1.pdf  used on input line 300.
 (pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
- [5 <../Figs/AddInd.pdf>] [6 <../Figs/phasePlot1.pdf>] (./MainText.aux)
-
-LaTeX Warning: There were multiply-defined labels.
-
+ [9 <../Figs/AddInd.pdf>] [10 <../Figs/tsSSBSSBmsy1.pdf>] [11 <../Figs/tsFFmsy1.pdf>] [12 <../Figs/tsCatch1.pdf>] [13 <../Figs/boxplotSBSBMSY1.pdf>] [14 <../Figs/boxplotFFMSY1.pdf>] [15 <../Figs/boxplotCatchTotal1.pdf>] [16 <../Figs/boxplotAAVY1.pdf>] [17 <../Figs/phasePlot1.pdf>] (./MainText.aux)
 Package rerunfilecheck Info: File `MainText.out' has not changed.
-(rerunfilecheck)             Checksum: B9EB7983291F604278607528D621A5D7;214.
+(rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 18035 strings out of 480236
- 338917 string characters out of 5893969
- 659294 words of memory out of 5000000
- 35560 multiletter control sequences out of 15000+600000
- 498428 words of font info for 158 fonts, out of 8000000 for 9000
+ 18632 strings out of 480236
+ 348776 string characters out of 5893969
+ 671186 words of memory out of 5000000
+ 35989 multiletter control sequences out of 15000+600000
+ 508895 words of font info for 248 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 108i,6n,106p,1005b,921s stack positions out of 5000i,500n,10000p,200000b,80000s
- <c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1200.600pk><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmb10.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on MainText.pdf (6 pages, 414240 bytes).
+ 108i,7n,106p,1351b,1230s stack positions out of 5000i,500n,10000p,200000b,80000s
+ <c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1200.600pk><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmb10.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
+Output written on MainText.pdf (17 pages, 667963 bytes).
 PDF statistics:
- 99 PDF objects out of 1000 (max. 8388607)
- 72 compressed objects within 1 object stream
- 10 named destinations out of 1000 (max. 500000)
- 73239 words of extra memory for PDF output out of 74296 (max. 10000000)
+ 293 PDF objects out of 1000 (max. 8388607)
+ 227 compressed objects within 3 object streams
+ 65 named destinations out of 1000 (max. 500000)
+ 75314 words of extra memory for PDF output out of 89155 (max. 10000000)
 

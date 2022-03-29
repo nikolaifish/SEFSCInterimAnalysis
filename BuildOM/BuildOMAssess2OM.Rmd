@@ -44,7 +44,7 @@ Perr_y_user <- NA # Set to 1 to remove process error (set to NA in order to leav
 # Specify observation model (Huynh et al. used the "Precise_Unbiased" Obs model)
 ObsUser <- Perfect_Info
 
-run_rdat_to_Obs <- TRUE   # If TRUE, OM will start with ObsUser but then run rdat_to_Obs on the appropriate
+run_rdat2Obs <- TRUE   # If TRUE, OM will start with ObsUser but then run rdat2Obs on the appropriate
                           # rdat to modify the Obs object to reflect sampling observed in data used in BAM
                           # assessments
 
@@ -63,6 +63,11 @@ Mat_age1_max <- 0.49
 
 # Indicate if operating models should only include indices that were available in the final year of the assessment. logical
 AddInd_endyr_only <- TRUE
+
+## Do not use age-varying M (since SCA uses constant M)
+#!! As of 2022-03-24 the run_script for the MSE is expecting OM with age-varying M.
+#!! M is then set to constant in most scenarios in the MSE
+Mconstant <- FALSE
 
 # # par_cv: When generating parameters for Stock objects, mean values are observed from rdat.
 # #         Coefficient of variation (CV) values are set to compute the standard deviation of
@@ -108,51 +113,26 @@ bam_rdat_sub <- paste("rdat",bam_common_name_sub,sep="_")
 OMNames <- gsub("rdat_","OM_",bam_rdat_sub)
 ```
 
-```{r}
-# create completely empty Data object
-Data_empty <- local({
-  dat <- new("Data")
-  for(slotName_i in slotNames(dat)){
-    slot_i <- slot(dat,slotName_i)
-    if(length(slot_i)>0&is.numeric(slot_i)){
-      slot(dat,slotName_i) <- slot_i*NA
-    }
-  }
-  dat
-})
-```
-
-
 ```{r build Data, eval=TRUE}
 for(rdat_name_i in bam_rdat_sub){
   rdat_i <- get(rdat_name_i)
   
   Data_name_i <- gsub("rdat","Data",rdat_name_i)
-  Data_i <- rdat_to_Data(rdat_i, Mat_age1_max=Mat_age1_max, length_sc = length_sc,nsim=nsim)
-  # This is to try to solve a problem that occurs later when running Simulate on OM_GreaterAmberjack that has something to do with CAL
-  # I think it might be occurring because there are length comps in a year with no age comps. Maybe. It doesn't occur with Cobia which also
-  # has CAL with values for only a single year.
-  # if(Data_name_i=="Data_GreaterAmberjack"){
-  #   Data_i@CAL <- array(NA,c(1,1,1))
-  #   Data_i@CAL_bins <- as.numeric(NA)
-  #   Data_i@CAL_mids <- as.numeric(NA)
-  # }
-  #Data_i@wla <- Data_i@wla*0.00220462 # Convert kg to klb
-  
+  Data_i <- rdat2Data(rdat_i, Mat_age1_max=Mat_age1_max, length_sc = length_sc,nsim=nsim)
+
   assign(Data_name_i,Data_i)
   saveRDS(Data_i,file=file.path("Data","SEFSC",paste0(Data_name_i,".rds")),compress=FALSE)
 }  
 ```
 
-
 ```{r build OM Assess2OM, eval=TRUE}
 list_Nage_F0_pr_sc <- list() # List for storing values of Nage_F0_pr_sc (for plotting hist compared to BAM)
-vec_to_mat <- function(vec){
+vec2mat <- function(vec){
   matrix(vec,nrow=dim(naa)[2],ncol=dim(naa)[3],byrow=FALSE,
                     dimnames=dimnames(naa)[2:3])
 }
 
-mat_to_array <- function(mat,nsim){
+mat2array <- function(mat,nsim){
   mat_data <- rep(as.numeric(mat),each=nsim)
   array(mat_data, dim=c(nsim,nrow(mat),ncol(mat)),
                dimnames=list("sim"=1:nsim, "ages"=rownames(mat), "year"=colnames(mat)))
@@ -163,7 +143,7 @@ for(rdat_name_i in bam_rdat_sub){
   Name_i <- gsub("rdat_","",rdat_name_i)
   DataName_i <- gsub("rdat_","Data_",rdat_name_i)
   Data_i <- get(DataName_i)
-  Obs_i <- rdat_to_Obs(rdat_i)
+  Obs_i <- rdat2Obs(rdat_i)
   
   herm_i <- bamStockMisc[Name_i, "herm"]
   OM_name_i <- gsub("rdat","OM",rdat_name_i)
@@ -210,7 +190,7 @@ if(min(ageinit_i)>0){
   rownames(naa_mat2) <- age_i
   naa_mat2["0",-1] <- naa_mat2[paste(ageinitmin_i),-1]*Nage_F0_pr_sc # Compute numbers at age-0
   naa_mat2[naa_mat2<0] <- 1 # Don't let value be less than 1
-  naa <- mat_to_array(naa_mat2[,-1],nsim=nsim)
+  naa <- mat2array(naa_mat2[,-1],nsim=nsim)
   
   faa_mat <- cbind("age"=ageinit_i,t(rdat_i$F.age[years_i,]))
   faa_mat2 <- data_polate(faa_mat,xout = age_i)
@@ -220,34 +200,34 @@ if(min(ageinit_i)>0){
     faa_mat2["0",-1] <- 0 # Set F at age-0 to zero
   }
   
-  faa <- mat_to_array(faa_mat2[,-1],nsim=nsim)
+  faa <- mat2array(faa_mat2[,-1],nsim=nsim)
   
   mat_waa_klb <- matrix(a.series_i$wgt.klb,
                         nrow=dim(naa)[2],ncol=dim(naa)[3],byrow=FALSE,
                         dimnames=dimnames(naa)[2:3])
-  waa <- mat_to_array(mat_waa_klb,nsim=nsim)
+  waa <- mat2array(mat_waa_klb,nsim=nsim)
   
   mat_pmat <- matrix(pmatage(a.series_i,herm=herm_i)$pmat,
                         nrow=dim(naa)[2],ncol=dim(naa)[3],byrow=FALSE,
                         dimnames=dimnames(naa)[2:3])
-  Mataa <- mat_to_array(mat_pmat,nsim=nsim)
+  Mataa <- mat2array(mat_pmat,nsim=nsim)
   
   mat_M <- matrix(a.series_i$M,
                         nrow=dim(naa)[2],ncol=dim(naa)[3],byrow=FALSE,
                         dimnames=dimnames(naa)[2:3])
-  Maa <- mat_to_array(mat_M,nsim=nsim)
+  Maa <- mat2array(mat_M,nsim=nsim)
   
   mat_laa <- matrix(a.series_i$length*length_sc,
                         nrow=dim(naa)[2],ncol=dim(naa)[3],byrow=FALSE,
                         dimnames=dimnames(naa)[2:3])
-  laa <- mat_to_array(mat_laa,nsim=nsim)
+  laa <- mat2array(mat_laa,nsim=nsim)
   
   CurrentYr_i = parms_i$endyr
   
           if(!is.null(ObsUser)) {
-          if(run_rdat_to_Obs){
+          if(run_rdat2Obs){
             my_rdat <- get(gsub("OM","rdat",OM_name_i))
-            ObsUser <- rdat_to_Obs(
+            ObsUser <- rdat2Obs(
                             rdat=my_rdat,
                             Obs=ObsUser,
                             Ind_abb=c("sTV", "sCT", "sVD", "sBL", "sVL", "sBT", "sFT"),
@@ -261,7 +241,8 @@ if(min(ageinit_i)>0){
                 proyears = proyears,
                 interval = interval,
                 CurrentYr = CurrentYr_i,
-                h=steep_i, R0=R0_i,
+                h=steep_i,
+                R0=R0_i,
                 Obs = ObsUser,
                 Imp = ImpUser,
                 naa=naa, faa=faa, waa=waa, Mataa=Mataa, Maa=Maa, laa=laa,
@@ -270,9 +251,11 @@ if(min(ageinit_i)>0){
                 recind = 0,
                 plusgroup = TRUE,
                 altinit = 0,
-                fixq1 = TRUE,)
+                fixq1 = FALSE)
  
- 
+ if(Mconstant){
+    OM_i@cpars$M_ageArray[] <- Data_i@Mort
+ }
  
  OM_i@cpars$K <- rep(K_i,nsim)
  OM_i@cpars$Linf <- rep(Linf_i,nsim)
@@ -331,7 +314,7 @@ if(min(ageinit_i)>0){
    AddIunits <- AddIunits[AddInd_endyr_ix]
  }
  
- Data2_i <- Data_empty
+ Data2_i <- Data_empty()
  slot(Data2_i,"AddInd") <- AddInd
  slot(Data2_i,"CV_AddInd") <- CV_AddInd
  slot(Data2_i,"AddIndV") <- AddIndV
