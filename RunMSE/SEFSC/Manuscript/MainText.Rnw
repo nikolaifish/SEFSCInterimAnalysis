@@ -190,14 +190,15 @@ We ran  \texttt{rdat2Data} on the \texttt{rdat} objects, and passed indices of a
 
 \subsection*{Response variables and performance metrics}
 
+
+
 (include description of stock assessments and interim approach calculations)
 
 Response variables: Catch, average annual variability in catch, $SSB/SSB_{MSY}$, $F/F_{MSY}$.
 
 \section*{Results}
 
-Response variables tended to vary among time periods over the projection years, and therefore plotted by time period.
-In general, stock status ($SSB/SSB_{MSY}$) was similar among all nine SCA-based MPs for all four species, pooling across scenarios (Fig. \ref{fig:boxplotSBSBMSY1}). However MPs that adjusted between assessments with a buffered index approach tended to show slightly higher stock status for Black Sea Bass and Vermilion Snapper. Fishery status ($F/F_{MSY}$) was somewhat more variable, but still largely consistent among SCA-based MPs, for all species. For Black Sea Bass and Vermilion Snapper, $F/F_{MSY}$ for buffered index MPs tended to be at the low end of the range of the other MPs. Similarly, total catch was also similar among SCA-based MPs for all species, for similar time periods. Average annual variability in yield (catch) showed more substantial variation among MPs.
+Response variables tended to vary among time periods over the projection years, and are therefore plotted by time period. In general, stock status ($SSB/SSB_{MSY}$) was similar among all nine SCA-based MPs for all four species, pooling across scenarios (Fig. \ref{fig:boxplotSBSBMSY1}). However MPs that adjusted between assessments with a buffered index approach tended to show slightly higher stock status for Black Sea Bass and Vermilion Snapper. Fishery status ($F/F_{MSY}$) was somewhat more variable, but still largely consistent among SCA-based MPs, for all species. For Black Sea Bass and Vermilion Snapper, $F/F_{MSY}$ for buffered index MPs tended to be at the low end of the range of the other MPs. Similarly, total catch was also similar among SCA-based MPs for all species, for similar time periods. Average annual variability in yield (catch) showed more substantial variation among MPs.
 
 
 \section*{Discussion}
@@ -246,41 +247,8 @@ We thank everyone.
 \includegraphics[width=6in,height=7in]{../Figs/AddInd.pdf}
 \end{center}
 \begin{flushleft}
-\caption{Indices derived from BAM stock assessments available during the projection period, for the SCA\_5 MP in the Base scenario. Shaded areas represent 95\% CI for indices among simulation runs.}
+\caption{Indices derived from BAM stock assessments available during the projection period, for the SCA\_10 MP in the Base scenario, where stock assessments are conducted every 10 years during the projection period (dashed vertical lines). Shaded areas represent 95\% CI for indices among simulation runs.}
 \label{fig:AddInd}
-\end{flushleft}
-\end{figure}
-
-% Time series of SSB/SSBMSY 1
-\begin{figure}[!ht]
-\begin{center}
-\includegraphics[width=6in,height=7in]{../Figs/tsSSBSSBmsy1.pdf}
-\end{center}
-\begin{flushleft}
-\caption{Time series of mean $\mathrm{SSB/SSB_{MSY}}$ among simulation runs for the base and alternative scenarios. }
-\label{fig:tsSSBSSBmsy1}
-\end{flushleft}
-\end{figure}
-
-% Time series of F/FMSY 1
-\begin{figure}[!ht]
-\begin{center}
-\includegraphics[width=6in,height=7in]{../Figs/tsFFmsy1.pdf}
-\end{center}
-\begin{flushleft}
-\caption{Time series of mean $\mathrm{F/F_{MSY}}$ among simulation runs for the base and alternative scenarios. }
-\label{fig:tsFFmsy1}
-\end{flushleft}
-\end{figure}
-
-% Time series of Catch 1
-\begin{figure}[!ht]
-\begin{center}
-\includegraphics[width=6in,height=7in]{../Figs/tsCatch1.pdf}
-\end{center}
-\begin{flushleft}
-\caption{Time series of mean $\mathrm{catch}$ among simulation runs for the base and alternative scenarios. }
-\label{fig:tsCatch1}
 \end{flushleft}
 \end{figure}
 
@@ -327,6 +295,40 @@ We thank everyone.
 \label{fig:boxplotAAVY1}
 \end{flushleft}
 \end{figure}
+
+% Time series of SSB/SSBMSY 1
+\begin{figure}[!ht]
+\begin{center}
+\includegraphics[width=6in,height=7in]{../Figs/tsSSBSSBmsy1.pdf}
+\end{center}
+\begin{flushleft}
+\caption{Time series of mean $\mathrm{SSB/SSB_{MSY}}$ among simulation runs for the base and alternative scenarios. }
+\label{fig:tsSSBSSBmsy1}
+\end{flushleft}
+\end{figure}
+
+% Time series of F/FMSY 1
+\begin{figure}[!ht]
+\begin{center}
+\includegraphics[width=6in,height=7in]{../Figs/tsFFmsy1.pdf}
+\end{center}
+\begin{flushleft}
+\caption{Time series of mean $\mathrm{F/F_{MSY}}$ among simulation runs for the base and alternative scenarios. }
+\label{fig:tsFFmsy1}
+\end{flushleft}
+\end{figure}
+
+% Time series of Catch 1
+\begin{figure}[!ht]
+\begin{center}
+\includegraphics[width=6in,height=7in]{../Figs/tsCatch1.pdf}
+\end{center}
+\begin{flushleft}
+\caption{Time series of mean $\mathrm{catch}$ among simulation runs for the base and alternative scenarios. }
+\label{fig:tsCatch1}
+\end{flushleft}
+\end{figure}
+
 
 % Phase plots
 \begin{figure}[!ht]

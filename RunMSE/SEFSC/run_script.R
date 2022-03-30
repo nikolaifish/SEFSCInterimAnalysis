@@ -46,33 +46,41 @@ OMName <- c("OM_RedPorgy" # Runs,
 )
 
 # Setup loops
-scenario <- c(
-              "hs"
-              ,"hd"
-              ,"vdome" # Assume dome-shaped selectivity of catch in assessments
-              ,"agevarM"  # M is age varying in the operating model
-              ,"base"
-              ,"dep"
-              #,"epiM"  # Red Porgy sometimes has problems getting down to the specified level of depletion
-              ,"lf"
-              ,"lhset"    # set certain life history parameters
-              ,"minerr"   # Minimize error and variation in operating model
-              ,"minrecdev"  # Minimize recruitment deviations
-              ,"Mset"     # set M
-              ,"noempind"
-              ,"nolag"
-              ,"perfobs" # Perfect observations
-              ,"rc"     # Regime change
-              ,"steepset"  # set steepness
-              ,"tachi"
-              ,"taclo"
-              ,"ucvhi"
-              ,"ucvlo"
-              ,"ubias"
-              ,"vtiv"    # Vulnerability time-invariant in historic period
+scenario <- c("recns",
+              "catcvlo",
+              #"hs"
+              #,"hd"
+              #,"vdome" # Assume dome-shaped selectivity of catch in assessments
+              #,"agevarM"  # M is age varying in the operating model
+              #,"base"
+              #,"dep"
+              "epiM"  # Red Porgy sometimes has problems getting down to the specified level of depletion
+              #,"lf"
+              #,"lhset"    # set certain life history parameters
+              #,"minerr"   # Minimize error and variation in operating model
+              #,"minrecdev"  # Minimize recruitment deviations
+              #,"Mset"     # set M
+              #,"noempind"
+              #,"nolag"
+              #,"perfobs" # Perfect observations
+              #,"rc"     # Regime change
+              #,"steepset"  # set steepness
+              #,"tachi"
+              #,"taclo"
+              #,"ucvhi"
+              #,"ucvlo"
+              #,"ubias"
+              #,"vtiv"    # Vulnerability time-invariant in historic period
 
               ##,"genfle"   # Generic fleet (kicked out error in RedPorgy "'Len_age' must be array with dimensions: nsim, maxage+1, nyears + proyears.")
 )
+
+# Nonstationary recruitment
+recns_args <- list("yr1diff"=  0,   # Number of years between the beginning of the projection period and start of change in rec devs
+                   "y0"=1,"sd"=5,"mu"=0) # Arguments passed to bamExtras::random_walk
+
+# Set catch cv in SCA models to be very low (like in BAM)
+catcvlo_args <- list("cv"=0.05)
 
 # Set life history parameters
 lhset_args <- list("h"=0.84, "M"=0.2)
@@ -90,19 +98,19 @@ hs_args <- list("min"=1/3,"max"=2/3)
 hd_args <- list("min"=1.5,"max"=3)
 
 ## Episodic M scenario args
-# yrprop:  Proportion of years to apply a multiplier on M
+# yrprop:  Proportion of years to apply a multiplier on M (Huynh used 0.1)
 # M_mult_max:  Limit on how high the multiplier on M can be (Huynh set it to 4 for age-invariant M
-#     but when I used that, the TACs were absurdly high like 1e+11 causing other values to be absurd)
+#     but when I used that the TACs were absurdly high like 1e+11 causing other values to be absurd)
 #     Values as high as 0.5 resulted in some MSY values equal to zero for RedPorgy though it was fine for
 #     BlackSeaBass and VermilionSnapper. I think it has to do with how depleted Red Porgy is. Perhaps it is crashing the population
 #     when M is too high.
 # M_lognorm_sd: lognormal sd on distribution of M_mult. Huynh used 2 but that results in a lot of values above
 #     M_mult_max, so when  you apply pmin to limit the maximum value, then M_mult_max
 #     ends up being one of the most common M_mult values
-# epiM_args <- list("yrprop"=0.1,
-#                   "M_mult_max"=0.2,
-#                   "M_lognorm_sd" <- 0.2
-# )
+epiM_args_init <- list(
+  "OM_RedPorgy"=list("yrprop" = 0.1, "M_mult_max" = 4, "M_lognorm_sd" = 0.2),
+  "OM_other"  = list("yrprop" = 0.1, "M_mult_max" = 4, "M_lognorm_sd" = 0.2)
+)
 
 # Index cv high scenario args
 ucvhi_args <- list("scale"=2)
@@ -206,11 +214,23 @@ for(OMName_k in OMName) { ######### Loop over operating model
         # This is the original code for this scenario written by Quang Huynh
         # (slightly modified to account for OM_k@maxage+1 age classes in the current version of openMSE)
         set.seed(myseed)
-        M_mult <- rbinom(OM_k@proyears * OM_k@nsim, 1, 0.1) * pmin(exp(rnorm(OM_k@proyears * OM_k@nsim, 0, 2)), 4)
-        M_y <- OM_k@M[1] * (1 + M_mult)
-        M_array_hist <- array(OM_k@M[1], dim = c(OM_k@nsim, OM_k@maxage+1, OM_k@nyears))
-        M_array_future <- aperm(array(M_y, dim = c(OM_k@nsim, OM_k@proyears, OM_k@maxage+1)), perm = c(1, 3, 2))
-        OM_k@cpars$M_ageArray <- abind::abind(M_array_hist, M_array_future, along = 3)
+        if(OMName_k=="OM_RedPorgy"){
+          epiM_args <- epiM_args_init$OM_RedPorgy
+        }else{
+          epiM_args <- epiM_args_init$OM_other
+        }
+        OM_k@cpars$M_ageArray <- with(epiM_args,{
+          M_mult <- rbinom(OM_k@proyears * OM_k@nsim, 1, yrprop) * pmin(exp(rnorm(n=OM_k@proyears * OM_k@nsim, mean=0, sd=M_lognorm_sd)),
+                                                                        M_mult_max)
+          M_mult_age <- rep(M_mult,each=OM_k@maxage+1) # Vector of multipliers repeating for each age
+          M_array_hist <- OM_k@cpars$M_ageArray[,,1:OM_k@nyears]
+          M_array_proj1 <- OM_k@cpars$M_ageArray[,,-(1:OM_k@nyears)]
+          a1 <- as.numeric(aperm(M_array_proj1, perm = c(2, 1, 3))) # vectorize array and rearrange dimensions
+          M_y <- a1 * (1 + M_mult_age) # Note that one is added to the multiplier so that the observed M is actually the minimum
+          M_array_proj <- aperm(array(M_y, dim = c(OM_k@maxage+1,OM_k@nsim, OM_k@proyears)), perm = c(2, 1, 3))
+        return(abind::abind(M_array_hist, M_array_proj, along = 3))
+        })
+        hist(OM_k@cpars$M_ageArray)
         # NK modified this section to apply to M-at-age
         # OM_k@cpars$M_ageArray <- with(epiM_args,{
         #   M_mult <- rbinom(OM_k@proyears * OM_k@nsim, 1, yrprop) * pmin(exp(rnorm(OM_k@proyears * OM_k@nsim, 0, 2)), M_mult_max)
@@ -295,6 +315,30 @@ for(OMName_k in OMName) { ######### Loop over operating model
         val <- t(t(Perr_y)*y_mult)
         OM_k@cpars$Perr_y <- val
       }
+
+      # Non-stationary recruitment (random walk in average recruitment deviations)
+      if(scenario_i=="recns"){
+        args <- get(paste0(scenario_i,"_args"))
+        Perr_y <- OM_k@cpars$Perr_y
+
+        years <- dim(Perr_y)[2]
+        x <- rep(1,years)
+        yr1 <- (years-OM_k@proyears)+args$yr1diff+1
+        yrs2 <- yr1:years
+        y_adj2 <- sapply(1:dim(Perr_y)[1],FUN=function(x){
+            #y0 <- Perr_y[x,yr1]
+            0+random_walk(x=yrs2,y0=args$y0,sd=args$sd,mu=args$mu)/100}
+            )
+        Perr_y[,yrs2] <-  Perr_y[,yrs2]+t(y_adj2)
+        Perr_y[Perr_y<0] <- 0.01 # Minimum recruitment multiplier low but not zero
+
+        val <- Perr_y
+        OM_k@cpars$Perr_y <- val
+
+        # Plot what these values look like
+        #matplot(t(Perr_y),type="l",ylim=c(0,4))
+      }
+
 
       # Vulnerability time-invariant during historic years. Default is constant across historic years
       if(scenario_i=="vtiv"){
@@ -385,6 +429,20 @@ for(OMName_k in OMName) { ######### Loop over operating model
         lag_Assess <- 0
       }else{
         lag_Assess <- lag_Assess_Init
+      }
+
+      # Define custom stock assessment function
+      MP_args <- list(.Assess = "SCA_NK", .HCR = "HCR_MSY", MSY_frac = MSY_frac,
+                      AddInd = AddInd_val, AddInd_all=AddInd_all_assess,diagnostic=MP_diagnostic)
+      BAM_SCA_args <- list(SR="BH",
+                           vulnerability = vulnerability_Assess,
+                           early_dev = "comp_onegen",
+                           late_dev = "comp50",
+                           CAA_dist = "multinomial",
+                           lag=lag_Assess)
+
+      if(scenario_i == "catcvlo") {
+        BAM_SCA_args$control <- list("omega"=catcvlo_args$cv)
       }
 
       source('fn/iMP.R') # Define MPs

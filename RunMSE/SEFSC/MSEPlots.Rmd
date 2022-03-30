@@ -49,14 +49,16 @@ Names_user <- gsub("^OM_","",OMNames_user)
 OMNames_huynh <- c("OM_CapelinHuynh", "OM_PacificOceanPerchHuynh", "OM_VermilionSnapperHuynh")
 
 scenNames_user1 <-  c("base","dep","lf","ucvhi","ubias","ucvlo")
-scenNames_user2 <-  c("base","rc","minerr","minrecdev","vtiv")
-scenNames_user3 <-  c("base","noempind",
-                      "nolag","perfobs","tachi")
-scenNames_user4 <-  c("base","lhset","Mset","steepset","agevarM"#,"epiM"
-                      )
+scenNames_user2 <-  c("base","rc","minerr","minrecdev","recns","vtiv")
+scenNames_user3 <-  c("base","noempind","catcvlo","nolag","perfobs","tachi")
+scenNames_user4 <-  c("base","lhset","Mset","steepset","agevarM","epiM")
 
 # All scenarios
-scenNames_user <- unique(c(scenNames_user1,scenNames_user2,scenNames_user3,scenNames_user4))
+scenNames_user <- unique(c(scenNames_user1
+                           ,scenNames_user2
+                           ,scenNames_user3
+                           #,scenNames_user4
+                           ))
 
 # Alternative realities
 # These scenarios are considered equally plausible, for the purposes of
@@ -65,6 +67,7 @@ scenNames_user <- unique(c(scenNames_user1,scenNames_user2,scenNames_user3,scenN
 
 scenNames_key <- c("agevarM"="Age-varying M",
                    "base"="Base",
+                   "catcvlo"="Catch CV 0.05",
                    "dep"="Depleted",
                    "epiM"="Episodic M",
                    "hd"="Hyper-deplete",
@@ -80,6 +83,7 @@ scenNames_key <- c("agevarM"="Age-varying M",
                    "nolag"="No data lag",
                    "perfobs"="Perfect observation",
                    "rc"="Regime\nchange",
+                   "recns"="Recruitment\nnonstationary",
                    "steepset"="Set steepness",
                    "tachi"="TAC 1.25MSY",
                    "ubias"="Index\nbiased",
@@ -1900,7 +1904,7 @@ if(plot_pdf){dev.off()}
 # )
 ```
 
-```{r plot time series4,eval=TRUE}
+```{r plot time series4,eval=FALSE}
 # # VB
 # plot_MSE_ts(
 # OMNames= OMNames, scenNames=scenNames_user4,
@@ -2414,19 +2418,19 @@ plot_MSE_ts(
   hline=NA
 )
 
-if(plot_pdf){pdf("Figs/phasePlot4.pdf")}
-plot_MSE_ts(
-  OMNames= OMNames, scenNames=scenNames_user4,
-  plot_type = "phase",
-  proyear_phase=41:50,
-  MPNamesSub = c(MPNamesSub_user),
-  MPNamesSub_legtext=c(MPNamesSub_user_legtext),
-  rowLabs=scenNames_key[scenNames_user4],
-  mar=c(0,0,0,0),label_axes="leftbottom",
-  xlim=c(0,5),ylim=c(0,5),
-  hline=NA
-)
-if(plot_pdf){dev.off()}
+# if(plot_pdf){pdf("Figs/phasePlot4.pdf")}
+# plot_MSE_ts(
+#   OMNames= OMNames, scenNames=scenNames_user4,
+#   plot_type = "phase",
+#   proyear_phase=41:50,
+#   MPNamesSub = c(MPNamesSub_user),
+#   MPNamesSub_legtext=c(MPNamesSub_user_legtext),
+#   rowLabs=scenNames_key[scenNames_user4],
+#   mar=c(0,0,0,0),label_axes="leftbottom",
+#   xlim=c(0,5),ylim=c(0,5),
+#   hline=NA
+# )
+# if(plot_pdf){dev.off()}
 ```
 
 

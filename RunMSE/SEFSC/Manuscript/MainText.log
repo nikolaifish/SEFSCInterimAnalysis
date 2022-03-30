@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2022.3.1)  28 MAR 2022 13:24
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (TeX Live 2021/W32TeX) (preloaded format=pdflatex 2022.3.1)  29 MAR 2022 10:09
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -547,62 +547,63 @@ File: ../Figs/AddInd.pdf Graphic file (type pdf)
 <use ../Figs/AddInd.pdf>
 Package pdftex.def Info: ../Figs/AddInd.pdf  used on input line 212.
 (pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
-<../Figs/tsSSBSSBmsy1.pdf, id=95, 505.89pt x 505.89pt>
-File: ../Figs/tsSSBSSBmsy1.pdf Graphic file (type pdf)
-<use ../Figs/tsSSBSSBmsy1.pdf>
-Package pdftex.def Info: ../Figs/tsSSBSSBmsy1.pdf  used on input line 223.
+<../Figs/boxplotSBSBMSY1.pdf, id=95, 505.89pt x 505.89pt>
+File: ../Figs/boxplotSBSBMSY1.pdf Graphic file (type pdf)
+<use ../Figs/boxplotSBSBMSY1.pdf>
+Package pdftex.def Info: ../Figs/boxplotSBSBMSY1.pdf  used on input line 223.
 (pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <10.95> on input line 226.
-<../Figs/tsFFmsy1.pdf, id=96, 505.89pt x 505.89pt>
-File: ../Figs/tsFFmsy1.pdf Graphic file (type pdf)
-<use ../Figs/tsFFmsy1.pdf>
-Package pdftex.def Info: ../Figs/tsFFmsy1.pdf  used on input line 234.
-(pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
-<../Figs/tsCatch1.pdf, id=97, 505.89pt x 505.89pt>
-File: ../Figs/tsCatch1.pdf Graphic file (type pdf)
-<use ../Figs/tsCatch1.pdf>
-Package pdftex.def Info: ../Figs/tsCatch1.pdf  used on input line 245.
-(pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
-<../Figs/boxplotSBSBMSY1.pdf, id=98, 505.89pt x 505.89pt>
-File: ../Figs/boxplotSBSBMSY1.pdf Graphic file (type pdf)
-<use ../Figs/boxplotSBSBMSY1.pdf>
-Package pdftex.def Info: ../Figs/boxplotSBSBMSY1.pdf  used on input line 256.
-(pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
-<../Figs/boxplotFFMSY1.pdf, id=99, 505.89pt x 505.89pt>
+ [9 <../Figs/AddInd.pdf>]
+<../Figs/boxplotFFMSY1.pdf, id=110, 505.89pt x 505.89pt>
 File: ../Figs/boxplotFFMSY1.pdf Graphic file (type pdf)
 <use ../Figs/boxplotFFMSY1.pdf>
-Package pdftex.def Info: ../Figs/boxplotFFMSY1.pdf  used on input line 267.
+Package pdftex.def Info: ../Figs/boxplotFFMSY1.pdf  used on input line 234.
 (pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
-<../Figs/boxplotCatchTotal1.pdf, id=100, 505.89pt x 505.89pt>
+<../Figs/boxplotCatchTotal1.pdf, id=111, 505.89pt x 505.89pt>
 File: ../Figs/boxplotCatchTotal1.pdf Graphic file (type pdf)
 <use ../Figs/boxplotCatchTotal1.pdf>
-Package pdftex.def Info: ../Figs/boxplotCatchTotal1.pdf  used on input line 278.
+Package pdftex.def Info: ../Figs/boxplotCatchTotal1.pdf  used on input line 245.
 (pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
-<../Figs/boxplotAAVY1.pdf, id=101, 505.89pt x 505.89pt>
+<../Figs/boxplotAAVY1.pdf, id=112, 505.89pt x 505.89pt>
 File: ../Figs/boxplotAAVY1.pdf Graphic file (type pdf)
 <use ../Figs/boxplotAAVY1.pdf>
-Package pdftex.def Info: ../Figs/boxplotAAVY1.pdf  used on input line 289.
+Package pdftex.def Info: ../Figs/boxplotAAVY1.pdf  used on input line 256.
 (pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
-<../Figs/phasePlot1.pdf, id=102, 505.89pt x 505.89pt>
+<../Figs/tsSSBSSBmsy1.pdf, id=113, 505.89pt x 505.89pt>
+File: ../Figs/tsSSBSSBmsy1.pdf Graphic file (type pdf)
+<use ../Figs/tsSSBSSBmsy1.pdf>
+Package pdftex.def Info: ../Figs/tsSSBSSBmsy1.pdf  used on input line 267.
+(pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
+<../Figs/tsFFmsy1.pdf, id=114, 505.89pt x 505.89pt>
+File: ../Figs/tsFFmsy1.pdf Graphic file (type pdf)
+<use ../Figs/tsFFmsy1.pdf>
+Package pdftex.def Info: ../Figs/tsFFmsy1.pdf  used on input line 278.
+(pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
+<../Figs/tsCatch1.pdf, id=115, 505.89pt x 505.89pt>
+File: ../Figs/tsCatch1.pdf Graphic file (type pdf)
+<use ../Figs/tsCatch1.pdf>
+Package pdftex.def Info: ../Figs/tsCatch1.pdf  used on input line 289.
+(pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
+<../Figs/phasePlot1.pdf, id=116, 505.89pt x 505.89pt>
 File: ../Figs/phasePlot1.pdf Graphic file (type pdf)
 <use ../Figs/phasePlot1.pdf>
-Package pdftex.def Info: ../Figs/phasePlot1.pdf  used on input line 300.
+Package pdftex.def Info: ../Figs/phasePlot1.pdf  used on input line 301.
 (pdftex.def)             Requested size: 433.62885pt x 505.89645pt.
- [9 <../Figs/AddInd.pdf>] [10 <../Figs/tsSSBSSBmsy1.pdf>] [11 <../Figs/tsFFmsy1.pdf>] [12 <../Figs/tsCatch1.pdf>] [13 <../Figs/boxplotSBSBMSY1.pdf>] [14 <../Figs/boxplotFFMSY1.pdf>] [15 <../Figs/boxplotCatchTotal1.pdf>] [16 <../Figs/boxplotAAVY1.pdf>] [17 <../Figs/phasePlot1.pdf>] (./MainText.aux)
+ [10 <../Figs/boxplotSBSBMSY1.pdf>] [11 <../Figs/boxplotFFMSY1.pdf>] [12 <../Figs/boxplotCatchTotal1.pdf>] [13 <../Figs/boxplotAAVY1.pdf>] [14 <../Figs/tsSSBSSBmsy1.pdf>] [15 <../Figs/tsFFmsy1.pdf>] [16 <../Figs/tsCatch1.pdf>] [17 <../Figs/phasePlot1.pdf>] (./MainText.aux)
 Package rerunfilecheck Info: File `MainText.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
  18632 strings out of 480236
  348776 string characters out of 5893969
- 671186 words of memory out of 5000000
+ 671294 words of memory out of 5000000
  35989 multiletter control sequences out of 15000+600000
  508895 words of font info for 248 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  108i,7n,106p,1351b,1230s stack positions out of 5000i,500n,10000p,200000b,80000s
  <c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1200.600pk><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmb10.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb><c:/Users/nikolai.klibansky/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
-Output written on MainText.pdf (17 pages, 667963 bytes).
+Output written on MainText.pdf (17 pages, 668220 bytes).
 PDF statistics:
  293 PDF objects out of 1000 (max. 8388607)
  227 compressed objects within 3 object streams

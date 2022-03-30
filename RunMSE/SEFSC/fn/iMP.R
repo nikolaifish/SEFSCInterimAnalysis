@@ -1,13 +1,3 @@
-# Define custom stock assessment function
-MP_args <- list(.Assess = "SCA_NK", .HCR = "HCR_MSY", MSY_frac = MSY_frac,
-                AddInd = AddInd_val, AddInd_all=AddInd_all_assess,diagnostic=MP_diagnostic)
-BAM_SCA_args <- list(SR="BH",
-                     vulnerability = vulnerability_Assess,
-                     early_dev = "comp_onegen",
-                     late_dev = "comp50",
-                     CAA_dist = "multinomial",
-                     lag=lag_Assess)
-
 # Averaged Index and Buffered Index MPs with (numbers indicate assessment interval)
 iMP_avg_5 <- do.call(make_interim_MP_NK,
                      c(list(assessment_interval = 5,type = "mean", type_par = 3),
