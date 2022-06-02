@@ -14,7 +14,9 @@ source("fn/make_interim_MP_NK.R")
 source("fn/make_projection_MP_NK.R")
 source("fn/SCA_NK.R")
 
-nsim <- 48 #250
+ncores <- 10
+
+nsim <- 50#250
 runScenarios <- TRUE # Run scenarios to do MSE or just generate historical data?
 runMSE_args <- list("parallel"=TRUE,"extended"=TRUE,"silent"=FALSE)
 lag_Assess_Init <- 2 # Number of years between terminal year of assessment and first year of management. May be modified in scenarios
@@ -23,22 +25,29 @@ MSY_frac_Init <- 1 # Fraction of MSY for setting TAC. May be modified in scenari
 AddInd_val_Init <- 1  # Index used in interim procedures and possibly assessments. May be modified in scenarios
 AddInd_all_assess_Init <- TRUE # Should all available indices be used in assessments? Only works with SCA_NK() May be modified in scenarios
 MP_diagnostic <- "min"
-#M_OM_agevariant <- FALSE # Should M be age-variant in the operating model? Note that the SCA function currently treats M as a constant
+maxF <- 3 # set maximum F allowed in simulations
 
+OMName_scen_complete <- NA
+#   local({
+#   a <- gsub(".rds","",list.files("MSE_obj"))
+#   b <- gsub("MSE","OM",a)
+#   b
+# })
 
-OMName_scen_complete <-
-  local({
-  a <- gsub(".rds","",list.files("MSE_obj"))
-  b <- gsub("MSE","OM",a)
-  b
-})
+MPs_user <- c(
+  #"CC1","SPMSY", # "AvC", "DCAC", "DBSRA", # simple MPs
+  "SCA_1","SCA_5","SCA_10",        # assessment only MPs
+  "iMP_avg_5",    "iMP_avg_10",    # interim average MPs
+  "iMP_buffer_5", "iMP_buffer_10", # interim buffered MPs
+  "pMP_5","pMP_10"                 # projection MPs
+)
 
 # OMName_all <- gsub(".rds","",list.files("OM"))
 # OMName <- OMName_all[!OMName_all%in%OMName_complete]
-OMName <- c("OM_RedPorgy" # Runs,
-            ,"OM_BlackSeaBass" # Runs
-            ,"OM_VermilionSnapper" # Runs
-            ,"OM_SnowyGrouper" # Runs 2022-1-20 batch 1 for base took only 25 min
+OMName <- c("OM_BlackSeaBass", # Runs
+            "OM_RedPorgy", # Runs,
+            "OM_SnowyGrouper",
+            "OM_VermilionSnapper" # Runs
             #"OM_RedGrouper", # 2022-1-19 This took 7 hours just to run the base scenario batch 1 so I interrupted it
             #,"OM_GagGrouper"#, # Runs
             #,"OM_GrayTriggerfish" # Problems with lightly fished scenario where "More than 5 % of simulations can't get to the specified level of depletion with these Operating Model parameters"
@@ -46,32 +55,38 @@ OMName <- c("OM_RedPorgy" # Runs,
 )
 
 # Setup loops
-scenario <- c("recns",
-              "catcvlo",
-              #"hs"
+scenario <- c("base"
+
+               #,"catcvlo"
+              #,"ucvhi"
+              #,"ucvlo"
+              #,"ubias"
+              ##,"SCAfree" # TFree up some parameters in the SCA model (Very long run time for Vermilion Snapper)
+              #,"basealt" # Alternative base ("SCAfree" + "catcvlo"). Didn't take very long in Vermilion Snapper
+              #,"dep"
+
+              #,"lf"
+              #,"recns"
+              #,"hs"
               #,"hd"
               #,"vdome" # Assume dome-shaped selectivity of catch in assessments
-              #,"agevarM"  # M is age varying in the operating model
-              #,"base"
-              #,"dep"
-              "epiM"  # Red Porgy sometimes has problems getting down to the specified level of depletion
-              #,"lf"
+              #,"constM"  # M is constant in the operating model
+
+              #,"epiM"  # Red Porgy sometimes has problems getting down to the specified level of depletion
               #,"lhset"    # set certain life history parameters
               #,"minerr"   # Minimize error and variation in operating model
               #,"minrecdev"  # Minimize recruitment deviations
               #,"Mset"     # set M
               #,"noempind"
+
               #,"nolag"
               #,"perfobs" # Perfect observations
               #,"rc"     # Regime change
               #,"steepset"  # set steepness
               #,"tachi"
               #,"taclo"
-              #,"ucvhi"
-              #,"ucvlo"
-              #,"ubias"
-              #,"vtiv"    # Vulnerability time-invariant in historic period
 
+              #,"vtiv"    # Vulnerability time-invariant in historic period
               ##,"genfle"   # Generic fleet (kicked out error in RedPorgy "'Len_age' must be array with dimensions: nsim, maxage+1, nyears + proyears.")
 )
 
@@ -108,7 +123,7 @@ hd_args <- list("min"=1.5,"max"=3)
 #     M_mult_max, so when  you apply pmin to limit the maximum value, then M_mult_max
 #     ends up being one of the most common M_mult values
 epiM_args_init <- list(
-  "OM_RedPorgy"=list("yrprop" = 0.1, "M_mult_max" = 4, "M_lognorm_sd" = 0.2),
+  "OM_RedPorgy"=list("yrprop" = 0.1, "M_mult_max" = 0.3, "M_lognorm_sd" = 0.2),
   "OM_other"  = list("yrprop" = 0.1, "M_mult_max" = 4, "M_lognorm_sd" = 0.2)
 )
 
@@ -130,12 +145,83 @@ rc_args <-  list("yr1diff"=  10,   # Number of years between the beginning of th
                  "r2_mult" =  0.75  # Multiplier on rec devs for regime 2. (a value of 1 would mean recruitment was not changing)
 )
 
+#
+tachi_args <- list("MSY_frac"=1.25)
+
+# Minimum error arguments
+minerr_args <- list("cv_constant"=0.05,"LenCV"=0.05,"Perr"=c(0,0.05))
+
+# SCAfree
+SCAfree_args <- list(fix_h=FALSE,fix_F_equilibrium=FALSE, fix_omega=FALSE, fix_tau=FALSE)
+
 # seeds <- setNames(sample(1:10000,length(OMName),replace = FALSE),OMName)
 
-MSEtool::setup(12) # Run in parallel over 12 cores
+# FUNCTION to generate index observation errors
+# gen_AddIerr()
+gen_AddIerr <- function(OM,
+                        scale_cv=FALSE,
+                        bias_cv=FALSE,
+                        fix_cv=FALSE,
+                        AddIndToMod = 1,
+                        args,
+                        cv_constant
+                        ){
+
+# args <- get(paste0(scenario_i,"_args"))
+proyears <- OM@proyears
+nyears <- OM@nyears
+years <- OM@nyears+proyears
+
+# Setup empty array
+AddInd <- OM@cpars$Data@AddInd
+CV_AddInd <- OM@cpars$Data@CV_AddInd
+AddIerr_hist <- AddInd*NA
+AddIerr_proj <- array(NA,
+                      dim=c(dim(AddIerr_hist)[1:2],proyears),
+                      dimnames = list(dimnames(AddIerr_hist)[[1]],
+                                      dimnames(AddIerr_hist)[[2]],
+                                      rev(as.numeric(dimnames(AddIerr_hist)[[3]]))[1]+1:proyears
+                      )
+)
+# Generate bootstrap residuals for AddInd indices of abundance
+for(i in  1:dim(CV_AddInd)[2]){
+  CV_AddInd_i <- CV_AddInd[,i,]
+  # Possibly scale cvs
+  if(scale_cv & i %in% AddIndToMod){
+    CV_AddInd_i <- CV_AddInd_i*args$scale
+  }
+  # Possibly fix cvs
+  if(fix_cv & i %in% AddIndToMod){
+    CV_AddInd_i[!is.na(CV_AddInd_i)] <- cv_constant
+  }
+
+  AddIerr_hist[,i,] <- t(apply(CV_AddInd_i,1,function(x){
+    lnorm_vector_boot(x=x/x,cv=x)
+  }))
+  AddIerr_proj[,i,] <- t(apply(CV_AddInd_i,1,function(x){
+    x_proj <- sample(as.numeric(x[!is.na(x)]),size=proyears,replace=TRUE)
+    lnorm_vector_boot(x=x_proj/x_proj,cv=x_proj)
+  }))
+}
+AddIerr <- abind::abind(AddIerr_hist,AddIerr_proj,along=3)
+
+# Add bias to AddInd
+for(i in  1:dim(CV_AddInd)[2]){
+if(bias_cv & i %in% AddIndToMod){
+yr1 <- OM@nyears+args$yr1diff+1
+yrsmod <- yr1:max(years) # Years to modify
+yrdiff <- yrsmod-yr1
+AddIerr[,i,yrsmod] <- t(t(AddIerr[,i,yrsmod])+(args$int+args$slope*yrdiff))
+}
+}
+
+return(AddIerr)
+}
+
+MSEtool::setup(ncores,logical=TRUE) # Run in parallel over ncores
 sfLibrary("magrittr", character.only = TRUE, verbose = FALSE)
 
-for(OMName_k in OMName) { ######### Loop over operating model
+for(OMName_k in OMName)       { ######### Loop over operating model
 
   MSEName_k <- gsub("OM","MSE",OMName_k)
   DataName_k <- gsub("OM","Data",OMName_k)
@@ -145,12 +231,14 @@ for(OMName_k in OMName) { ######### Loop over operating model
   Data_k <- DataInit_k
 
   for(scenario_i in scenario) { ######### Loop over scenario
-
     set.seed(myseed)
+
     # All scenarios
     OMName_scen <- paste0(OMName_k, "_", scenario_i)
     if(!OMName_scen%in%OMName_scen_complete){
       OM_k <- OMInit_k
+
+      OM_k@maxF <- maxF
 
       # Set wider range for recruitment autocorrelation
       OM_k@AC <- sort(pmin(pmax(OM_k@AC*(1+c(-1,1)*.5),0.05),0.95))
@@ -159,12 +247,19 @@ for(OMName_k in OMName) { ######### Loop over operating model
       # May not even be necessary if fixq1 = FALSE in Assess2OM.
       OM_k@cpars <- OM_k@cpars[names(OM_k@cpars)[names(OM_k@cpars)!="qs"]]
 
+      ## Generate observation error for AddInd
+         OM_k@cpars$AddIerr <- gen_AddIerr(OM_k)
+
+
       ## SCENARIOS
 
       # M varies with age in the operating model
       # By default the OMs contain age-varying M but it's usually set to constant since the SCA uses constant M.
-      if(scenario_i!="agevarM"){
+      if(scenario_i=="constM"){
         OM_k@cpars$M_ageArray[] <- Data_k@Mort
+        M_at_age <-  FALSE
+      }else{
+        M_at_age <- TRUE
       }
 
       # Set multiple life history parameters
@@ -246,52 +341,27 @@ for(OMName_k in OMName) { ######### Loop over operating model
 
       # Index CV high
       if(scenario_i=="ucvhi"){
-        # OM_k@Iobs <- OM_k@Iobs*ucvhi_args$scale
-        OM_k@cpars$Data@CV_AddInd[,1,] <- OM_k@cpars$Data@CV_AddInd[,1,]*ucvhi_args$scale
-      }
+        ## Generate observation error for AddInd
+        OM_k@cpars$AddIerr <- gen_AddIerr(OM_k,scale_cv = TRUE,args=ucvhi_args)
+
+        #### This didn't have the desired effect. It didn't actually seem to change the AddInd in the projection period
+        # CV_AddInd1 <- OM_k@cpars$Data@CV_AddInd[,1,]
+        # CV_AddInd1[!is.na(CV_AddInd1)] <- ucvhi_args$cv
+        # OM_k@cpars$Data@CV_AddInd[,1,] <- CV_AddInd1
+        }
 
       # Index CV low
       if(scenario_i=="ucvlo"){
-        #OM_k@Iobs <- OM_k@Iobs*ucvlo_args$scale
-        OM_k@cpars$Data@CV_AddInd[,1,] <- OM_k@cpars$Data@CV_AddInd[,1,]*ucvlo_args$scale
+        ## Generate observation error for AddInd
+        OM_k@cpars$AddIerr <- gen_AddIerr(OM_k,scale_cv = TRUE, args=ucvlo_args)
+
       }
 
       # Index bias trend
       if(scenario_i=="ubias"){
-        args <- get(paste0(scenario_i,"_args"))
-        proyears <- OM_k@proyears
-        nyears <- OM_k@nyears
-        years <- OM_k@nyears+proyears
+        ## Generate observation error for AddInd
+        OM_k@cpars$AddIerr <- gen_AddIerr(OM_k,bias_cv = TRUE, args=ubias_args)
 
-        # Setup empty array
-        AddInd <- OM_k@cpars$Data@AddInd
-        CV_AddInd <- OM_k@cpars$Data@CV_AddInd
-        AddIerr_hist <- AddInd*NA
-        AddIerr_proj <- array(NA,
-                              dim=c(dim(AddIerr_hist)[1:2],proyears),
-                              dimnames = list(dimnames(AddIerr_hist)[[1]],
-                                              dimnames(AddIerr_hist)[[2]],
-                                              rev(as.numeric(dimnames(AddIerr_hist)[[3]]))[1]+1:proyears
-                              )
-        )
-
-        for(i in  1:dim(CV_AddInd)[2]){
-          CV_AddInd_i <- CV_AddInd[,i,]
-          AddIerr_hist[,i,] <- t(apply(CV_AddInd_i,1,function(x){
-            lnorm_vector_boot(x=x/x,cv=x)
-          }))
-          AddIerr_proj[,i,] <- t(apply(CV_AddInd_i,1,function(x){
-            x_proj <- sample(as.numeric(x[!is.na(x)]),size=proyears,replace=TRUE)
-            lnorm_vector_boot(x=x_proj/x_proj,cv=x_proj)
-          }))
-        }
-        AddIerr <- abind::abind(AddIerr_hist,AddIerr_proj,along=3)
-        yr1 <- OM_k@nyears+args$yr1diff+1
-        yrsmod <- yr1:max(years) # Years to modify
-        yrdiff <- yrsmod-yr1
-        AddIerr[,1,yrsmod] <- t(t(AddIerr[,1,yrsmod])+(args$int+args$slope*yrdiff))
-
-        OM_k@cpars$AddIerr <- AddIerr
       }
 
       # Regime change (change in average recruitment deviations)
@@ -373,9 +443,10 @@ for(OMName_k in OMName) { ######### Loop over operating model
         OM_k <- Replace(OM_k, Perfect_Info)
         ## Minimize other sources of error (but don't reduce to zero)
         OM_k@cpars <- OM_k@cpars[names(OM_k@cpars)!="Perr_y"]
-        OM_k@Perr <- c(0,0.05)
-        OM_k@cpars$Data@CV_AddInd[!is.na(OM_k@cpars$Data@CV_AddInd)] <- 0.05
-        OM_k@cpars$LenCV[!is.na(OM_k@cpars$LenCV)] <- 0.05
+        OM_k@Perr <- minerr_args$Perr
+        # OM_k@cpars$Data@CV_AddInd[!is.na(OM_k@cpars$Data@CV_AddInd)] <- 0.05
+        OM_k@cpars$AddIerr <- gen_AddIerr(OM_k, fix_cv = TRUE, cv_constant = minerr_args$cv_constant)
+        OM_k@cpars$LenCV[!is.na(OM_k@cpars$LenCV)] <- minerr_args$LenCV
 
         # Make vulnerability constant (during historic and projection years)
         OM_k@cpars$V <- local({
@@ -400,10 +471,11 @@ for(OMName_k in OMName) { ######### Loop over operating model
 
       if(scenario_i=="tachi"){
         # Set TAC to high value
-        MSY_frac <- 1.25
+        MSY_frac <- tachi_args$MSY_frac
       }else{
         MSY_frac <- MSY_frac_Init
       }
+
 
       if(scenario_i=="noempind"){
         # Clear AddInd and related slots from OM_k$cpars$Data
@@ -439,9 +511,13 @@ for(OMName_k in OMName) { ######### Loop over operating model
                            early_dev = "comp_onegen",
                            late_dev = "comp50",
                            CAA_dist = "multinomial",
-                           lag=lag_Assess)
+                           lag=lag_Assess,
+                           M_at_age=M_at_age)
+      if(scenario_i %in% c("SCAfree","basealt")){
+        BAM_SCA_args <- c(BAM_SCA_args,SCAfree_args)
+      }
 
-      if(scenario_i == "catcvlo") {
+      if(scenario_i %in% c("catcvlo","basealt")) {
         BAM_SCA_args$control <- list("omega"=catcvlo_args$cv)
       }
 
@@ -458,12 +534,13 @@ for(OMName_k in OMName) { ######### Loop over operating model
               file=paste0("OM_modified/",paste0(OMName_ki, ".rds")))
 
       ######## All MPs
-      OM_k@interval <- c(#1, 1, 1, 1, 1,
-                         1,5,10,
-                         1,1,
-                         1,1,
-                         1,1
-                         )
+      # All intervals are 1 except for SCA MPs which might be longer
+      OM_k@interval <- local({
+        a <- rep(1,length(MPs_user))
+        SCA_MPs_ix <- which(grepl("^SCA_",MPs_user))
+        a[SCA_MPs_ix] <- as.numeric(gsub("^SCA_","",MPs_user[SCA_MPs_ix]))
+        a
+      })
       #set.seed(myseed)
       # myHist_Init <- Simulate(OMInit_k)
       set.seed(myseed)
@@ -475,15 +552,9 @@ for(OMName_k in OMName) { ######### Loop over operating model
 
       # Run all MPs together so that the Hist objects are always identical
       set.seed(myseed)
-      sfExport(list = c("Assess_diagnostic_NK","SCA_NK"))
+      sfExport(list = c("Assess_diagnostic_NK","SCA_NK","MSY_frac"))
       MSE_batch_1 <- runMSE(OM_k,
-                            MPs = c(#"AvC", "CC1", "DCAC", "DBSRA", "SPMSY" # simple MPs
-                                    #,
-                                    "SCA_1","SCA_5","SCA_10"       # assessment only MPs
-                                    ,"iMP_avg_5", "iMP_avg_10"       # interim average MPs
-                                    ,"iMP_buffer_5","iMP_buffer_10"   # interim buffered MPs
-                                    ,"pMP_5","pMP_10"                # projection MPs
-                            ),
+                            MPs = MPs_user,
                             parallel = runMSE_args$parallel, extended=runMSE_args$extended, silent=runMSE_args$silent)
 
       t_list <- c(t_list,Sys.time())
@@ -498,6 +569,6 @@ for(OMName_k in OMName) { ######### Loop over operating model
   }
 }
 
-save.image("run_script.RData")
+# save.image("run_script.RData")
 
 sfStop()

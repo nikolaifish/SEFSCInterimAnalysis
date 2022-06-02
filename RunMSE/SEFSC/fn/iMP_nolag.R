@@ -34,10 +34,12 @@ SCA_5 <- SCA_10 <- SCA_1 <- do.call(make_MP,
                                     )
 # Projection MPs
 pMP_5 <- do.call(make_projection_MP,
-                 c(list(assessment_interval = 5,process_error = NULL, p_sim = 1),
+                 c(list(assessment_interval = 5,process_error = NULL, p_sim = 1,
+                   Ftarget = expression(MSY_frac * Assessment@FMSY)),
                    MP_args, BAM_SCA_args)
                  )
 pMP_10 <- do.call(make_projection_MP,
-                 c(list(assessment_interval = 10,process_error = NULL, p_sim = 1),
+                 c(list(assessment_interval = 10,process_error = NULL, p_sim = 1,
+                   Ftarget = expression(MSY_frac * Assessment@FMSY)),
                    MP_args, BAM_SCA_args)
 )

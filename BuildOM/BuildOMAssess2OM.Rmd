@@ -30,6 +30,7 @@ library(bamMSE) # Nikolai's package
 length_sc <- 0.1 # Scalar (multiplier) to convert length units. MSEtool examples seem to use cm whereas BAM uses mm.
 generate_Hist <- TRUE # Switch for running Simulate on all of the OM to generate Hist objects. (takes a while)
 plot_Hist <- TRUE # Plot hist objects
+plot_pdf <- TRUE
 
 
 # OM
@@ -113,12 +114,19 @@ bam_rdat_sub <- paste("rdat",bam_common_name_sub,sep="_")
 OMNames <- gsub("rdat_","OM_",bam_rdat_sub)
 ```
 
+```{r functions}
+# color function like rainbow() but without yellow (or indigo)
+blues <- colorRampPalette(c("darkblue","lightblue"))
+grays <- colorRampPalette(c("black","lightgray"))
+```
+
+
 ```{r build Data, eval=TRUE}
 for(rdat_name_i in bam_rdat_sub){
   rdat_i <- get(rdat_name_i)
   
   Data_name_i <- gsub("rdat","Data",rdat_name_i)
-  Data_i <- rdat2Data(rdat_i, Mat_age1_max=Mat_age1_max, length_sc = length_sc,nsim=nsim)
+  Data_i <- rdat2Data(rdat_i, Mat_age1_max=Mat_age1_max, length_sc = length_sc,nsim=nsim, AddInd_order = "CVlo")
 
   assign(Data_name_i,Data_i)
   saveRDS(Data_i,file=file.path("Data","SEFSC",paste0(Data_name_i,".rds")),compress=FALSE)
@@ -126,6 +134,7 @@ for(rdat_name_i in bam_rdat_sub){
 ```
 
 ```{r build OM Assess2OM, eval=TRUE}
+rdatmods <- list() # List for saving rdat modifications used when plotting bam results compared with Hist objects
 list_Nage_F0_pr_sc <- list() # List for storing values of Nage_F0_pr_sc (for plotting hist compared to BAM)
 vec2mat <- function(vec){
   matrix(vec,nrow=dim(naa)[2],ncol=dim(naa)[3],byrow=FALSE,
@@ -282,8 +291,7 @@ if(min(ageinit_i)>0){
  
  # Save rdat modifications
  rdatmods_name_i <- gsub("rdat","rdatmods",rdat_name_i)
- assign(rdatmods_name_i,
-        list(
+ rdatmods_i <- list(
           "Name"=Name_i,
           "CurrentYr" = CurrentYr_i,
           "steep"=steep_i,
@@ -293,9 +301,9 @@ if(min(ageinit_i)>0){
           "N.age" = t(naa_mat2[,-1]),
           "F.age" = t(faa_mat2[,-1]),
           "B.age" = t(naa_mat2[,-1])*t(mat_waa_klb)
-          
           )
-        )
+ assign(rdatmods_name_i,rdatmods_i)
+ rdatmods[[Name_i]] <- rdatmods_i
 
  # Add indices observed in the assessment, their CVs, and their selectivities
  AddInd <- slot(Data_i,"AddInd")
@@ -304,9 +312,27 @@ if(min(ageinit_i)>0){
  AddIndType <- slot(Data_i,"AddIndType")
  AddIunits <- slot(Data_i,"AddIunits")
  
+ # # Determine the order of indices from most precise to least precise, and sort the corresponding slots
+ # # This will ensure the the most precise index is in the first column, and will therefore be used 
+ # # for interim analysis based on an index.
+ # o_CV_AddInd <- order(apply(CV_AddInd,2,function(x){mean(x,na.rm=TRUE)}))
+ # 
+ # AddInd <- AddInd[,o_CV_AddInd,,drop=FALSE]
+ # CV_AddInd <- CV_AddInd[,o_CV_AddInd,,drop=FALSE]
+ # AddIndV <- AddIndV[,o_CV_AddInd,,drop=FALSE]
+ # AddIndType <- AddIndType[o_CV_AddInd]
+ # AddIunits <- AddIunits[o_CV_AddInd]
+ 
  if(AddInd_endyr_only){
    # Identify which indices are available (not NA) in the terminal year of the assessment
-   AddInd_endyr_ix <- which(!is.na(AddInd[1,,dim(AddInd)[3]])) # Just uses the first sim!!
+   AddInd_endyr_NA <- is.na(AddInd[1,,dim(AddInd)[3]])
+   if(any(!AddInd_endyr_NA)){
+     AddInd_endyr_ix <- which(!AddInd_endyr_NA) # Just uses the first sim, but that should be fine
+   }else{
+     message(paste(Name_i,": No indices available in the terminal year of the assessment. Using the latest index available for AddInd."))
+     AddInd_LastYearAvail <- apply(AddInd[1,,,drop=FALSE],2,function(x){max(which(!is.na(x)))})
+     AddInd_endyr_ix <- AddInd_LastYearAvail==max(AddInd_LastYearAvail)
+   }
    AddInd <- AddInd[,AddInd_endyr_ix,,drop=FALSE]
    CV_AddInd <- CV_AddInd[,AddInd_endyr_ix,,drop=FALSE]
    AddIndV <- AddIndV[,AddInd_endyr_ix,,drop=FALSE]
@@ -324,7 +350,8 @@ if(min(ageinit_i)>0){
  OM_i@cpars$Data <- Data2_i
  
  assign(OM_name_i,OM_i)
-}  
+}
+save(rdatmods,file="rdatmods.RData")
 ```
 
 ```{r plot selectivity}
@@ -352,7 +379,7 @@ for(OM_name_i in OM_name_bam){
 }
 ```
 
-```{r generate Hist}
+```{r generate Hist, eval=TRUE}
 if(generate_Hist){
   
 for(OM_name_i in OM_name_bam){
@@ -371,7 +398,7 @@ for(OM_name_i in OM_name_bam){
 }
 ```
 
-```{r plot Hist with bam  results, eval=TRUE}
+```{r plot Hist with bam  results, eval=FALSE}
 if(plot_Hist){
  pdf("HistBam.pdf")
 CIpct = 95
@@ -454,3 +481,112 @@ mtext(i,side=3,line=0,outer=TRUE)
 dev.off()
 }
 ```
+
+```{r plot Hist with bam  results, eval=TRUE}
+if(plot_Hist){
+CIpct  <-  95
+
+#commonNames <- gsub(".*_(.+)_.*","\\1",OMNames_base)
+commonNames <- bam_common_name_sub
+lty <- c(1,2)
+
+for(i in commonNames){
+if(plot_pdf){pdf(paste0("Figs/Hist_",i,".pdf"))}  
+rdat_name_i <- paste0("rdat_",i)
+  
+OM_i <- get(paste0("OM_",i))
+# Data_i <- get(paste0("Data_",i))
+Hist_i <- get(paste0("Hist_",i))
+rdat_i <- standardize_rdat(get(rdat_name_i))
+rdatmods_i <- rdatmods[[i]]
+
+parms_i <- rdat_i$parms
+years_i <- paste(parms_i$styr:parms_i$endyr)
+t.series_i <- rdat_i$t.series[years_i,]
+
+Nage_F0_pr_sc_i <- rdatmods_i$Nage_F0_pr_sc
+
+par(mfrow=c(3,2),mgp=c(0.9,0.1,0),tck=-0.01,mar=c(2,2.5,1,1),oma=c(0,0,1.5,1))
+
+Fmatrix <- Hist_i@TSdata$Find
+
+# Landings
+Lmatrix <- Hist_i@TSdata$Landings[,,1]+Hist_i@TSdata$Landings[,,2]
+dimnames(Lmatrix) <- dimnames(Fmatrix)
+Lbam <- t.series_i$total.L.klb
+Dbam <- t.series_i$total.D.klb
+if(!is.null(Dbam)){
+  Lbam <- Lbam+Dbam
+}
+Lylim <- range(c(0,as.numeric(Lmatrix),Lbam))
+plot_boot_vec(Lmatrix,CIpct=CIpct,xlab="year",ylab="Landings + Discards (1000 lb)",ylim=Lylim,lty=lty[1])
+points(years_i,Lbam,type="o",#axes=FALSE,xlab="",ylab="",
+     col="blue",lty=lty[2])
+
+legend("bottomleft",
+       legend=c("sim","BAM"),
+       lty=lty,
+       pch=c(NA,1),
+       col=c("black","blue"),
+       bg=rgb(1,1,1,0.5),
+       inset=0.05
+       )
+
+
+# Indices
+AddIndArray <- Hist_i@Data@AddInd
+dimnames(AddIndArray) <- dimnames(OM_i@cpars$Data@AddInd)
+nAddInd <- dim(AddIndArray)[2]
+AddInd_col_sim <- grays(nAddInd)
+AddInd_col_bam <- blues(nAddInd)
+
+
+#U.names.ob <- names(t.series_i)[grepl("^U..*.ob$",names(t.series_i))]
+bam.U.ob <- t.series_i[,paste0("U.",dimnames(AddIndArray)[[2]],".ob"),drop=FALSE]
+for(j in 1:nAddInd){
+AddIndmatrix_j <- AddIndArray[,j,]
+dimnames(AddIndmatrix_j) <- dimnames(Fmatrix)  
+plot_boot_vec(AddIndmatrix_j,add=ifelse(j!=1,TRUE,FALSE),
+              CIpct=CIpct,xlab="year",ylab="AddInd",
+              col_lines=AddInd_col_sim[j],lty=lty[1]
+              )
+points(as.numeric(rownames(bam.U.ob)),bam.U.ob[,j],type="o", col=AddInd_col_bam[j],lty=lty[2])
+
+}
+# Recruitment
+Rmatrix <- Hist_i@AtAge$Number[,1,,1]+Hist_i@AtAge$Number[,1,,2]
+dimnames(Rmatrix) <- dimnames(Fmatrix)
+plot_boot_vec(Rmatrix,CIpct=CIpct,xlab="year",ylab="recruits",lty=lty[1])
+points(years_i,t.series_i$recruits*Nage_F0_pr_sc_i,type="o", col="blue",lty=lty[2])
+
+
+# N
+Nmatrix <- Hist_i@TSdata$Number[,,1]+Hist_i@TSdata$Number[,,2]
+dimnames(Nmatrix) <- dimnames(Fmatrix)
+bam.N <- rowSums(rdatmods_i$N.age)
+plot_boot_vec(Nmatrix,CIpct=CIpct,xlab="year",ylab="N",lty=lty[1])
+points(years_i,bam.N,type="o",col="blue",lty=lty[2])
+
+# F
+# Fmatrix <- Hist_i@TSdata$Find
+plot_boot_vec(Fmatrix,CIpct=CIpct,xlab="year",ylab="F",lty=lty[1])
+ points(years_i,t.series_i$F.full,type="o",
+     col="blue",lty=lty[2])
+
+
+# B
+Bmatrix <- Hist_i@TSdata$Biomass[,,1]+Hist_i@TSdata$Biomass[,,2]
+dimnames(Bmatrix) <- dimnames(Fmatrix)
+bam.Bklb <- rowSums(rdatmods_i$B.age)
+plot_boot_vec(Bmatrix,CIpct=CIpct,xlab="year",ylab="Biomass (1000 lb)",lty=lty[1])
+# par(new=TRUE)
+points(years_i,bam.Bklb,type="o", #axes=FALSE,xlab="",ylab="",
+     col="blue",lty=lty[1])
+
+mtext(i,side=3,line=0,outer=TRUE)
+
+if(plot_pdf){dev.off()}
+}
+}
+```
+

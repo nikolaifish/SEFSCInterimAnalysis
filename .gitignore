@@ -1,3 +1,11 @@
+RunMSE/SEFSC/Data/
+RunMSE/SEFSC/Hist.html
+RunMSE/SEFSC/MSE_obj/
+RunMSE/SEFSC/OM/
+RunMSE/SEFSC/OM_modified/
+RunMSE/SEFSC/2022-03-17/
+run_script.RData
+
 # History files
 .Rhistory
 .Rapp.history
@@ -34,3 +42,4 @@ vignettes/*.pdf
 
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
+

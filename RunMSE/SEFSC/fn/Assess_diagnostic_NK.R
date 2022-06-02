@@ -27,7 +27,7 @@ Assess_diagnostic_NK <- function (x, Data, Assessment, include_assessment = TRUE
                R0 = R0, h = h,
                MSY = MSY, FSY = FSY, SSBMSY = SSBMSY,
                F_FMSY = F_FMSY, SSB_SSBMSY = SSB_SSBMSY
-               )
+    )
   }
   else {
     dg <- list(hess = FALSE, msg = msg, maxgrad = 1e+10,
